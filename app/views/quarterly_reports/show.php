@@ -21,7 +21,7 @@
     <p class="mb-1"><b>Submitted At:</b> <?= htmlspecialchars($report['submitted_at'] ?? '') ?></p>
     <p class="mb-1"><b>Reviewed By:</b> <?= htmlspecialchars($report['reviewed_by_name'] ?? '') ?></p>
     <p class="mb-1"><b>Remarks:</b> <?= htmlspecialchars($report['approval_remarks'] ?? '') ?></p>
-    <?php if(($report['submission_status'] ?? 'Draft') == 'Draft' || ($report['submission_status'] ?? '') == 'For Revision'): ?>
+    <?php if(($canManageQuarterlyReports ?? false) && (($report['submission_status'] ?? 'Draft') == 'Draft' || ($report['submission_status'] ?? '') == 'For Revision')): ?>
         <a href="index.php?page=submit_quarterly_report&id=<?= $report['id'] ?>" class="btn btn-success btn-sm mt-2">Submit for Review</a>
     <?php endif; ?>
 </div>
@@ -95,9 +95,9 @@
 
 <div class="no-print mb-3">
     <button onclick="window.print()" class="btn btn-primary">Print / Save as PDF</button>
-    <?php if(in_array(($report['submission_status'] ?? 'Draft'), ['Draft','Recalled','For Revision'])): ?><a href="index.php?page=edit_quarterly_report&id=<?= $report['id'] ?>" class="btn btn-success">Edit Report</a><?php endif; ?>
-    <?php if(in_array(($report['submission_status'] ?? 'Draft'), ['Submitted','Under Review'])): ?><a href="index.php?page=recall_quarterly_report&id=<?= $report['id'] ?>" onclick="return confirm('Recall this submission for correction?')" class="btn btn-warning">Recall Submission</a><?php endif; ?>
-    <?php if(in_array(($report['submission_status'] ?? 'Draft'), ['Draft','Recalled','For Revision']) || hasRole(['Super Admin','Admin'])): ?><a href="index.php?page=delete_quarterly_report&id=<?= $report['id'] ?>" onclick="return confirm('Delete this report?')" class="btn btn-danger">Delete</a><?php endif; ?>
+    <?php if(($canManageQuarterlyReports ?? false) && in_array(($report['submission_status'] ?? 'Draft'), ['Draft','Recalled','For Revision'])): ?><a href="index.php?page=edit_quarterly_report&id=<?= $report['id'] ?>" class="btn btn-success">Edit Report</a><?php endif; ?>
+    <?php if(($canManageQuarterlyReports ?? false) && in_array(($report['submission_status'] ?? 'Draft'), ['Submitted','Under Review'])): ?><a href="index.php?page=recall_quarterly_report&id=<?= $report['id'] ?>" onclick="return confirm('Recall this submission for correction?')" class="btn btn-warning">Recall Submission</a><?php endif; ?>
+    <?php if(($canManageQuarterlyReports ?? false) && (in_array(($report['submission_status'] ?? 'Draft'), ['Draft','Recalled','For Revision']) || hasRole(['Super Admin']))): ?><a href="index.php?page=delete_quarterly_report&id=<?= $report['id'] ?>" onclick="return confirm('Delete this report?')" class="btn btn-danger">Delete</a><?php endif; ?>
     <a href="index.php?page=quarterly_reports" class="btn btn-secondary">Back to Quarterly Report</a> <a href="index.php?page=dashboard" class="btn btn-outline-primary">Back to Dashboard</a>
 </div>
 

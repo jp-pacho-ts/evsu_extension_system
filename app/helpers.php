@@ -1,6 +1,6 @@
 <?php
 function requireLogin(){ if(session_status()===PHP_SESSION_NONE) session_start(); if(!isset($_SESSION['user_id'])){ header("Location: index.php?page=login"); exit(); } }
-function normalizeRole($role){ $role=strtolower(trim((string)$role)); $a=['admin'=>'super admin','superadmin'=>'super admin','super admin'=>'super admin','extension staff'=>'department coordinator','staff'=>'department coordinator','department coordinator'=>'department coordinator','school coordinator'=>'school coordinator','campus director'=>'campus director','campus director / dean'=>'campus director','dean'=>'campus director','extension director'=>'extension director','vp ories'=>'vp ories','reviewer'=>'reviewer','approver'=>'reviewer']; return $a[$role]??$role; }
+function normalizeRole($role){ $role=strtolower(trim((string)$role)); $a=['admin'=>'admin','superadmin'=>'super admin','super admin'=>'super admin','extension staff'=>'department coordinator','staff'=>'department coordinator','department coordinator'=>'department coordinator','school coordinator'=>'school coordinator','campus director'=>'campus director','campus director / dean'=>'campus director','dean'=>'campus director','extension director'=>'extension director','vp ories'=>'vp ories','reviewer'=>'reviewer','approver'=>'reviewer']; return $a[$role]??$role; }
 function currentRole(){ return normalizeRole($_SESSION['role']??''); }
 function hasRole($roles){ $c=currentRole(); foreach($roles as $r){ if($c===normalizeRole($r)) return true; } return false; }
 function requireRole($roles){ requireLogin(); if(!hasRole($roles)){ include "app/views/access_denied.php"; exit(); } }
@@ -19,13 +19,13 @@ function decisionSupport($s){ return "Review project status."; }
 function pendingApprovalCount($db) {
     if(!$db) return 0;
     if (session_status() === PHP_SESSION_NONE) session_start();
-    $role = $_SESSION['role'] ?? '';
+    $role = currentRole();
     $expected = '';
 
-    if($role == 'School Coordinator') $expected = 'Submitted';
-    elseif($role == 'Campus Director') $expected = 'School Coordinator Approved';
-    elseif($role == 'Super Admin' || $role == 'Admin') $expected = 'Campus Director Approved';
-    elseif($role == 'VP ORIES') $expected = 'Extension Office Approved';
+    if($role == 'school coordinator') $expected = 'Submitted';
+    elseif($role == 'campus director') $expected = 'School Coordinator Approved';
+    elseif($role == 'super admin' || $role == 'admin') $expected = 'Campus Director Approved';
+    elseif($role == 'vp ories') $expected = 'Extension Office Approved';
     else $expected = '';
 
     if($expected == '') return 0;

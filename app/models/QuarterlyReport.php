@@ -93,7 +93,7 @@ class QuarterlyReport {
 
     public function delete($id){
         $id=intval($id); $report=$this->find($id); if(!$report) return false;
-        if(!$this->canDelete($report) && !hasRole(['Super Admin','Admin'])) return false;
+        if(!$this->canDelete($report) && !hasRole(['Super Admin'])) return false;
         $this->conn->query("DELETE FROM quarterly_report_items WHERE report_id=$id");
         $this->conn->query("DELETE FROM document_approvals WHERE document_type='quarterly_report' AND document_id=$id");
         return $this->conn->query("DELETE FROM quarterly_reports WHERE id=$id");
