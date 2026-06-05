@@ -154,7 +154,7 @@ CREATE TABLE `document_approvals` (
   `approver_user_id` int(11) DEFAULT NULL,
   `approver_name` varchar(180) DEFAULT NULL,
   `approver_signature_image` varchar(255) DEFAULT NULL,
-  `status` enum('Pending','Approved','For Revision','Recalled') DEFAULT 'Pending',
+  `status` enum('Pending','Approved','Not Approved','For Revision','Recalled') DEFAULT 'Pending',
   `remarks` text DEFAULT NULL,
   `signed_at` datetime DEFAULT NULL,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp()
@@ -650,7 +650,7 @@ CREATE TABLE `quarterly_reports` (
   `noted_by_extension_director_title` varchar(180) DEFAULT NULL,
   `approved_by` varchar(180) DEFAULT NULL,
   `approved_title` varchar(180) DEFAULT NULL,
-  `submission_status` enum('Draft','Submitted','Under Review','Recalled','For Revision','School Coordinator Approved','Campus Director Approved','Extension Office Approved','VP ORIES Approved','Approved','Archived') DEFAULT 'Draft',
+  `submission_status` enum('Draft','Submitted','Under Review','Recalled','For Revision','Not Approved','Department Coordinator Approved','School Coordinator Approved','Campus Director Approved','Extension Office Approved','VP ORIES Approved','Approved','Archived') DEFAULT 'Draft',
   `submitted_by` int(11) DEFAULT NULL,
   `submitted_at` datetime DEFAULT NULL,
   `recalled_by` int(11) DEFAULT NULL,

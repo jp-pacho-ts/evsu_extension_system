@@ -17,7 +17,7 @@ class ApprovalCenterController {
         ];
 
         $reports = [];
-        if(hasRole(['School Coordinator','Campus Director','VP ORIES','Super Admin','Admin'])) {
+        if(hasRole(['Department Coordinator','School Coordinator','Campus Director','VP ORIES'])) {
             $reports = $this->reportModel->approvalQueueForUser($currentUser);
         }
 

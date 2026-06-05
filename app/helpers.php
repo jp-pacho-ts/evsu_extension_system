@@ -30,10 +30,10 @@ function pendingApprovalCount($db) {
     $role = currentRole();
     $expected = '';
 
-    if($role == 'school coordinator') $expected = 'Submitted';
+    if($role == 'department coordinator') $expected = 'Submitted';
+    elseif($role == 'school coordinator') $expected = 'Department Coordinator Approved';
     elseif($role == 'campus director') $expected = 'School Coordinator Approved';
-    elseif($role == 'super admin' || $role == 'admin') $expected = 'Campus Director Approved';
-    elseif($role == 'vp ories') $expected = 'Extension Office Approved';
+    elseif($role == 'vp ories') $expected = 'Campus Director Approved';
     else $expected = '';
 
     if($expected == '') return 0;

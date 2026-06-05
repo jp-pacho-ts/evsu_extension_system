@@ -97,7 +97,7 @@
                     <td>
                         <?php
                             $status = $r['submission_status'] ?? 'Draft';
-                            $badge = $status == 'Approved' ? 'success' : ($status == 'For Revision' ? 'danger' : ($status == 'Submitted' ? 'primary' : ($status == 'Under Review' ? 'warning' : 'secondary')));
+                            $badge = ($status == 'Approved' || strpos($status, 'Approved') !== false) ? 'success' : (($status == 'For Revision' || $status == 'Not Approved') ? 'danger' : ($status == 'Submitted' ? 'primary' : ($status == 'Under Review' ? 'warning' : 'secondary')));
                         ?>
                         <span class="badge bg-<?= $badge ?>"><?= htmlspecialchars($status) ?></span>
                     </td>
@@ -105,10 +105,10 @@
                     <td><?= htmlspecialchars($r['report_date']) ?></td>
                     <td>
                         <a class="btn btn-sm btn-outline-primary" href="index.php?page=view_quarterly_report&id=<?= $r['id'] ?>">View / Print</a>
-                        <?php if(($canManageQuarterlyReports ?? false) && in_array(($r['submission_status'] ?? 'Draft'), ['Draft','Recalled','For Revision'])): ?><a class="btn btn-sm btn-outline-success" href="index.php?page=edit_quarterly_report&id=<?= $r['id'] ?>">Edit</a><?php endif; ?>
+                        <?php if(($canManageQuarterlyReports ?? false) && in_array(($r['submission_status'] ?? 'Draft'), ['Draft','Recalled','For Revision','Not Approved'])): ?><a class="btn btn-sm btn-outline-success" href="index.php?page=edit_quarterly_report&id=<?= $r['id'] ?>">Edit</a><?php endif; ?>
                         <?php if(($canManageQuarterlyReports ?? false) && in_array(($r['submission_status'] ?? 'Draft'), ['Submitted','Under Review'])): ?><a class="btn btn-sm btn-warning" onclick="return confirm('Recall this submission for correction?')" href="index.php?page=recall_quarterly_report&id=<?= $r['id'] ?>">Recall</a><?php endif; ?>
-                        <?php if(($canManageQuarterlyReports ?? false) && (in_array(($r['submission_status'] ?? 'Draft'), ['Draft','Recalled','For Revision']) || hasRole(['Super Admin']))): ?><a class="btn btn-sm btn-outline-danger" onclick="return confirm('Delete this report?')" href="index.php?page=delete_quarterly_report&id=<?= $r['id'] ?>">Delete</a><?php endif; ?>
-                        <?php if(($canManageQuarterlyReports ?? false) && (($r['submission_status'] ?? 'Draft') == 'Draft' || ($r['submission_status'] ?? '') == 'For Revision')): ?>
+                        <?php if(($canManageQuarterlyReports ?? false) && (in_array(($r['submission_status'] ?? 'Draft'), ['Draft','Recalled','For Revision','Not Approved']) || hasRole(['Super Admin']))): ?><a class="btn btn-sm btn-outline-danger" onclick="return confirm('Delete this report?')" href="index.php?page=delete_quarterly_report&id=<?= $r['id'] ?>">Delete</a><?php endif; ?>
+                        <?php if(($canManageQuarterlyReports ?? false) && in_array(($r['submission_status'] ?? 'Draft'), ['Draft','For Revision','Not Approved'])): ?>
                             <a class="btn btn-sm btn-success" href="index.php?page=submit_quarterly_report&id=<?= $r['id'] ?>">Submit</a>
                         <?php endif; ?>
                     </td>

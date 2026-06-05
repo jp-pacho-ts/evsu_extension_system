@@ -1,7 +1,12 @@
 <?php
 class QuarterlyReport {
     private $conn;
-    public function __construct($db){ $this->conn=$db; }
+    public function __construct($db){ $this->conn=$db; $this->ensureApprovalStatusEnums(); }
+
+    private function ensureApprovalStatusEnums(){
+        @$this->conn->query("ALTER TABLE quarterly_reports MODIFY submission_status enum('Draft','Submitted','Under Review','Recalled','For Revision','Not Approved','Department Coordinator Approved','School Coordinator Approved','Campus Director Approved','Extension Office Approved','VP ORIES Approved','Approved','Archived') DEFAULT 'Draft'");
+        @$this->conn->query("ALTER TABLE document_approvals MODIFY status enum('Pending','Approved','Not Approved','For Revision','Recalled') DEFAULT 'Pending'");
+    }
 
     public function all(){
         $r=$this->conn->query("SELECT qr.*,u.fullname submitted_by_name FROM quarterly_reports qr LEFT JOIN users u ON u.id=qr.submitted_by ORDER BY qr.created_at DESC");
@@ -60,9 +65,9 @@ class QuarterlyReport {
         return $d;
     }
 
-    public function canEdit($report){ return in_array($report['submission_status']??'Draft',['Draft','Recalled','For Revision']); }
+    public function canEdit($report){ return in_array($report['submission_status']??'Draft',['Draft','Recalled','For Revision','Not Approved']); }
     public function canRecall($report){ return in_array($report['submission_status']??'Draft',['Submitted','Under Review']); }
-    public function canDelete($report){ return in_array($report['submission_status']??'Draft',['Draft','Recalled','For Revision']); }
+    public function canDelete($report){ return in_array($report['submission_status']??'Draft',['Draft','Recalled','For Revision','Not Approved']); }
 
     private function esc($v){ return $this->conn->real_escape_string($v ?? ''); }
 
@@ -85,9 +90,11 @@ class QuarterlyReport {
         if(!$ok) return false;
         $id=$this->conn->insert_id;
         $this->saveItems($id,$items);
-        if($status=='Submitted') $this->resetApprovalRoute($id);
-        $this->addApprovalHistory($id, 'Submitted', 'Draft/Recalled/For Revision', 'Submitted', 'Report submitted for approval.');
-        notifyUsersByRole($this->conn,['School Coordinator'],'New Quarterly Report Submitted','A quarterly report is waiting for your approval.','index.php?page=approval_center');
+        if($status=='Submitted') {
+            $this->resetApprovalRoute($id);
+            $this->addApprovalHistory($id, 'Submitted', 'Draft/Recalled/For Revision/Not Approved', 'Submitted', 'Report submitted for approval.');
+            notifyUsersByRole($this->conn,['Department Coordinator'],'New Quarterly Report Submitted','A quarterly report is waiting for your approval.','index.php?page=approval_center');
+        }
         return $id;
     }
 
@@ -102,19 +109,19 @@ class QuarterlyReport {
         $this->conn->query("DELETE FROM quarterly_report_items WHERE report_id=$id");
         $this->saveItems($id,$items);
         if($status=='Submitted'){
-            $this->conn->query("DELETE FROM document_approvals WHERE document_type='quarterly_report' AND document_id=$id");
-            notifyUsersByRole($this->conn,['School Coordinator'],'Quarterly Report Resubmitted','A corrected quarterly report is waiting for your approval.','index.php?page=approvals');
+            $this->resetApprovalRoute($id);
+            notifyUsersByRole($this->conn,['Department Coordinator'],'Quarterly Report Resubmitted','A corrected quarterly report is waiting for your approval.','index.php?page=approvals');
         }
         return true;
     }
 
     public function submit($id,$uid){
         $id=intval($id); $uid=intval($uid); $report=$this->find($id);
-        if(!$report || !in_array($report['submission_status'],['Draft','Recalled','For Revision'])) return false;
+        if(!$report || !in_array($report['submission_status'],['Draft','Recalled','For Revision','Not Approved'])) return false;
         $this->conn->query("UPDATE quarterly_reports SET submission_status='Submitted',submitted_by=$uid,submitted_at=NOW(),recalled_by=NULL,recalled_at=NULL WHERE id=$id");
         $this->resetApprovalRoute($id);
-        $this->addApprovalHistory($id, 'Submitted', 'Draft/Recalled/For Revision', 'Submitted', 'Report submitted for approval.');
-        notifyUsersByRole($this->conn,['School Coordinator'],'New Quarterly Report Submitted','A quarterly report is waiting for your approval.','index.php?page=approval_center');
+        $this->addApprovalHistory($id, 'Submitted', 'Draft/Recalled/For Revision/Not Approved', 'Submitted', 'Report submitted for approval.');
+        notifyUsersByRole($this->conn,['Department Coordinator'],'New Quarterly Report Submitted','A quarterly report is waiting for your approval.','index.php?page=approval_center');
         return true;
     }
 
@@ -180,28 +187,48 @@ class QuarterlyReport {
         $this->conn->query("UPDATE quarterly_reports SET submission_status='$next', approval_remarks='$remarks' WHERE id=$id");
         $this->addApprovalHistory($id, 'Approved', $required, $next, $remarks);
 
+        if($next == 'Department Coordinator Approved') notifyUsersByRole($this->conn, ['School Coordinator'], 'Report Ready for Approval', 'A report is ready for School Coordinator approval.', 'index.php?page=approval_center');
         if($next == 'School Coordinator Approved') notifyUsersByRole($this->conn, ['Campus Director'], 'Report Ready for Approval', 'A report is ready for Campus Director/Dean approval.', 'index.php?page=approval_center');
-        if($next == 'Campus Director Approved') notifyUsersByRole($this->conn, ['Super Admin','Admin'], 'Report Ready for Extension Office Approval', 'A report is ready for Extension Office approval.', 'index.php?page=approval_center');
-        if($next == 'Extension Office Approved') notifyUsersByRole($this->conn, ['VP ORIES'], 'Report Ready for Final Approval', 'A report is ready for VP ORIES final approval.', 'index.php?page=approval_center');
+        if($next == 'Campus Director Approved') notifyUsersByRole($this->conn, ['VP ORIES'], 'Report Ready for Final Approval', 'A report is ready for VP ORIES final approval.', 'index.php?page=approval_center');
 
         return true;
     }
-    public function returnForRevision($id, $user, $remarks=''){
+    public function notApproveAsCurrentUser($id, $user, $remarks=''){
         $id = intval($id);
         $remarks = $this->conn->real_escape_string($remarks);
         $report = $this->find($id);
         if(!$report) return false;
         $old = $report['submission_status'] ?? '';
 
-        $this->conn->query("UPDATE quarterly_reports SET submission_status='For Revision', approval_remarks='$remarks' WHERE id=$id");
-        $this->addApprovalHistory($id, 'Returned for Revision', $old, 'For Revision', $remarks);
+        $role = $user['role'] ?? '';
+        $required = $this->requiredStatusForRole($role);
+        $level = $this->approvalLevelForRole($role);
+
+        if($required == '' || $level == 0) return false;
+        if($old != $required) return false;
+
+        $uid = intval($user['id'] ?? $_SESSION['user_id'] ?? 0);
+        $approver = $this->conn->query("SELECT fullname, signature_image FROM users WHERE id=$uid")->fetch_assoc();
+        $approverName = $this->conn->real_escape_string($approver['fullname'] ?? '');
+        $approverSignature = $this->conn->real_escape_string($approver['signature_image'] ?? '');
+
+        $this->ensureApprovalRoute($id);
+        $this->conn->query("UPDATE document_approvals
+            SET status='Not Approved', approver_user_id=$uid, approver_name='$approverName', approver_signature_image='$approverSignature', remarks='$remarks', signed_at=NOW()
+            WHERE document_type='quarterly_report' AND document_id=$id AND approval_level=$level");
+
+        $this->conn->query("UPDATE quarterly_reports SET submission_status='Not Approved', approval_remarks='$remarks' WHERE id=$id");
+        $this->addApprovalHistory($id, 'Not Approved', $old, 'Not Approved', $remarks);
         return true;
     }
+    public function returnForRevision($id, $user, $remarks=''){
+        return $this->notApproveAsCurrentUser($id, $user, $remarks);
+    }
     private function statusAfterApprovalRole($role){ 
+        if($role=='Department Coordinator') return 'Department Coordinator Approved'; 
         if($role=='School Coordinator') return 'School Coordinator Approved'; 
         if($role=='Campus Director') return 'Campus Director Approved'; 
-        if($role=='Super Admin' || $role=='Admin') return 'Extension Office Approved'; 
-        if($role=='VP ORIES') return 'VP ORIES Approved'; 
+        if($role=='VP ORIES') return 'Approved'; 
         return 'Under Review'; 
     }
 
@@ -232,12 +259,18 @@ class QuarterlyReport {
     public function ensureApprovalRoute($id) {
         $id = intval($id);
         $exists = $this->conn->query("SELECT id FROM document_approvals WHERE document_type='quarterly_report' AND document_id=$id LIMIT 1");
-        if($exists && $exists->num_rows > 0) return;
+        if($exists && $exists->num_rows > 0) {
+            $routeCheck = $this->conn->query("SELECT approval_role FROM document_approvals WHERE document_type='quarterly_report' AND document_id=$id AND approval_level=1 LIMIT 1");
+            $route = $routeCheck ? $routeCheck->fetch_assoc() : null;
+            if(($route['approval_role'] ?? '') == 'Department Coordinator') return;
+
+            $this->conn->query("DELETE FROM document_approvals WHERE document_type='quarterly_report' AND document_id=$id");
+        }
 
         $route = [
-            [1,'School Coordinator'],
-            [2,'Campus Director / Dean'],
-            [3,'Extension Office'],
+            [1,'Department Coordinator'],
+            [2,'School Coordinator'],
+            [3,'Campus Director / Dean'],
             [4,'VP ORIES']
         ];
 
@@ -256,26 +289,29 @@ class QuarterlyReport {
     }
 
     public function requiredStatusForRole($role) {
-        if($role == 'School Coordinator') return 'Submitted';
-        if($role == 'Campus Director') return 'School Coordinator Approved';
-        if($role == 'Super Admin' || $role == 'Admin') return 'Campus Director Approved';
-        if($role == 'VP ORIES') return 'Extension Office Approved';
+        $role = function_exists('normalizeRole') ? normalizeRole($role) : strtolower(trim((string)$role));
+        if($role == 'department coordinator') return 'Submitted';
+        if($role == 'school coordinator') return 'Department Coordinator Approved';
+        if($role == 'campus director') return 'School Coordinator Approved';
+        if($role == 'vp ories') return 'Campus Director Approved';
         return '';
     }
 
     public function nextStatusForRole($role) {
-        if($role == 'School Coordinator') return 'School Coordinator Approved';
-        if($role == 'Campus Director') return 'Campus Director Approved';
-        if($role == 'Super Admin' || $role == 'Admin') return 'Extension Office Approved';
-        if($role == 'VP ORIES') return 'VP ORIES Approved';
+        $role = function_exists('normalizeRole') ? normalizeRole($role) : strtolower(trim((string)$role));
+        if($role == 'department coordinator') return 'Department Coordinator Approved';
+        if($role == 'school coordinator') return 'School Coordinator Approved';
+        if($role == 'campus director') return 'Campus Director Approved';
+        if($role == 'vp ories') return 'Approved';
         return '';
     }
 
     public function approvalLevelForRole($role) {
-        if($role == 'School Coordinator') return 1;
-        if($role == 'Campus Director') return 2;
-        if($role == 'Super Admin' || $role == 'Admin') return 3;
-        if($role == 'VP ORIES') return 4;
+        $role = function_exists('normalizeRole') ? normalizeRole($role) : strtolower(trim((string)$role));
+        if($role == 'department coordinator') return 1;
+        if($role == 'school coordinator') return 2;
+        if($role == 'campus director') return 3;
+        if($role == 'vp ories') return 4;
         return 0;
     }
 }

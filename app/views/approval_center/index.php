@@ -34,11 +34,8 @@
                         <form method="POST" action="index.php?page=approval_action" class="mt-2">
                             <input type="hidden" name="report_id" value="<?= $r['id'] ?>">
                             <textarea name="approval_remarks" class="form-control form-control-sm mb-2" placeholder="Remarks"></textarea>
-                            <button class="btn btn-sm btn-success" name="approval_action" value="approve">Approve / SGD</button>
-                            <button class="btn btn-sm btn-danger" name="approval_action" value="revise">For Revision</button>
-                            <?php if(in_array($_SESSION['role'] ?? '', ['Super Admin','Admin']) && (($r['submission_status'] ?? '') == 'VP ORIES Approved')): ?>
-                                <button class="btn btn-sm btn-dark" name="approval_action" value="archive">Archive</button>
-                            <?php endif; ?>
+                            <button class="btn btn-sm btn-success" name="approval_action" value="approve">Approved</button>
+                            <button class="btn btn-sm btn-danger" name="approval_action" value="not_approve">Not Approved</button>
                         </form>
                     </td>
                 </tr>
