@@ -24,6 +24,42 @@ class QuarterlyReport {
         $d=[]; if($r) while($x=$r->fetch_assoc()) $d[]=$x; return $d;
     }
 
+    public function phaseSummary(){
+        $sql = "SELECT qri.project_phase, COUNT(*) AS total
+                FROM quarterly_report_items qri
+                JOIN quarterly_reports qr ON qr.id = qri.report_id
+                WHERE TRIM(COALESCE(qri.title_of_extension_project, '')) <> ''
+                GROUP BY qri.project_phase
+                ORDER BY CAST(qri.project_phase AS UNSIGNED), qri.project_phase";
+        $r = $this->conn->query($sql);
+        $d = [];
+        if($r) while($x = $r->fetch_assoc()) $d[] = $x;
+        return $d;
+    }
+
+    public function latestPhaseItems($limit = 8){
+        $limit = intval($limit);
+        if($limit <= 0) $limit = 8;
+
+        $sql = "SELECT
+                    qri.*,
+                    qr.period_covered,
+                    qr.submission_status,
+                    qr.report_date,
+                    qr.updated_at,
+                    qr.submitted_at,
+                    qr.created_at
+                FROM quarterly_report_items qri
+                JOIN quarterly_reports qr ON qr.id = qri.report_id
+                WHERE TRIM(COALESCE(qri.title_of_extension_project, '')) <> ''
+                ORDER BY COALESCE(qr.updated_at, qr.submitted_at, qr.report_date, qr.created_at) DESC, qri.id DESC
+                LIMIT $limit";
+        $r = $this->conn->query($sql);
+        $d = [];
+        if($r) while($x = $r->fetch_assoc()) $d[] = $x;
+        return $d;
+    }
+
     public function canEdit($report){ return in_array($report['submission_status']??'Draft',['Draft','Recalled','For Revision']); }
     public function canRecall($report){ return in_array($report['submission_status']??'Draft',['Submitted','Under Review']); }
     public function canDelete($report){ return in_array($report['submission_status']??'Draft',['Draft','Recalled','For Revision']); }

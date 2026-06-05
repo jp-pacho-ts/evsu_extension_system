@@ -43,6 +43,57 @@
 </div>
 
 <div class="card p-3 mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h5 class="fw-bold mb-0">Quarterly Report Phases</h5>
+        <a href="index.php?page=quarterly_reports" class="btn btn-sm btn-outline-primary">View Reports</a>
+    </div>
+
+    <div class="row g-3 mb-3">
+        <?php foreach(range(1, 7) as $phase): ?>
+            <div class="col-6 col-md-3 col-xl">
+                <div class="p-2 h-100">
+                    <small class="text-muted">Phase <?= $phase ?></small>
+                    <h4 class="mb-0"><?= $quarterlyPhaseCounts[(string)$phase] ?? 0 ?></h4>
+                </div>
+            </div>
+        <?php endforeach; ?>
+    </div>
+
+    <div class="table-responsive">
+        <table class="table table-sm table-hover align-middle mb-0">
+            <thead class="table-light">
+                <tr>
+                    <th>Extension Project</th>
+                    <th>Period Covered</th>
+                    <th>Phase</th>
+                    <th>Status</th>
+                    <th>Report Date</th>
+                </tr>
+            </thead>
+            <tbody>
+                <?php foreach(($quarterlyPhaseItems ?? []) as $item): ?>
+                    <?php
+                        $phase = trim((string)($item['project_phase'] ?? ''));
+                        if($phase !== '' && stripos($phase, 'phase') !== 0) $phase = 'Phase '.$phase;
+                    ?>
+                    <tr>
+                        <td><strong><?= htmlspecialchars($item['title_of_extension_project'] ?? '') ?></strong></td>
+                        <td><?= htmlspecialchars($item['period_covered'] ?? '') ?></td>
+                        <td><?= htmlspecialchars($phase) ?></td>
+                        <td><?= htmlspecialchars($item['submission_status'] ?? '') ?></td>
+                        <td><?= htmlspecialchars($item['report_date'] ?? '') ?></td>
+                    </tr>
+                <?php endforeach; ?>
+
+                <?php if(empty($quarterlyPhaseItems ?? [])): ?>
+                    <tr><td colspan="5" class="text-muted text-center">No quarterly report phases recorded yet.</td></tr>
+                <?php endif; ?>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div class="card p-3 mt-4">
     <h5 class="fw-bold">Prescriptive Decision Support</h5>
     <div class="table-responsive">
         <table class="table table-sm table-hover align-middle">
