@@ -1,0 +1,1 @@
+<?php class Database{function connect(){ $c=new mysqli('localhost','root','','extension_evsu'); if($c->connect_error) die('Database connection failed: '.$c->connect_error); return $c; }} ?>

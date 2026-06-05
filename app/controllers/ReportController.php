@@ -1,0 +1,1 @@
+<?php require_once 'app/models/Monitoring.php'; class ReportController{private $m;function __construct($db){$this->m=new Monitoring($db);}function index(){requireRole(['Super Admin','Admin','School Coordinator','Campus Director','Extension Director','VP ORIES']);$entries=$this->m->all();include 'app/views/reports/index.php';}} ?>

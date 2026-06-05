@@ -1,0 +1,1 @@
+<?php class User{private $c;function __construct($d){$this->c=$d;}function login($u,$p){$u=$this->c->real_escape_string($u);$p=md5($p);$r=$this->c->query("SELECT * FROM users WHERE username='$u' AND password='$p' LIMIT 1");return($r&&$r->num_rows)?$r->fetch_assoc():false;}} ?>

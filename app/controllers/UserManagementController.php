@@ -1,0 +1,5 @@
+<?php
+require_once "app/models/SystemUser.php";
+class UserManagementController{private $model,$db; function __construct($db){$this->db=$db;$this->model=new SystemUser($db);}
+function index(){ requireRole(['Super Admin','Admin']); $message=''; if($_SERVER['REQUEST_METHOD']=='POST'){ if(isset($_POST['create_user'])){$message=$this->model->create($_POST)?'Account created.':'Unable to create account.'; logActivity($this->db,'Create Account','User Management',$_POST['username']??'');} if(isset($_POST['update_user'])){$message=$this->model->update($_POST)?'Account updated.':'Unable to update account.'; logActivity($this->db,'Update Account','User Management','ID '.$_POST['user_id']);} if(isset($_POST['delete_user'])){$message=$this->model->delete($_POST['user_id'])?'Account deleted.':'Unable to delete account.'; logActivity($this->db,'Delete Account','User Management','ID '.$_POST['user_id']);}} $users=$this->model->all(); include 'app/views/users/index.php';}
+}?>
