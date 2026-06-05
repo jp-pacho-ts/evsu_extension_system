@@ -25,9 +25,46 @@ class Project {
     }
 
     public function create($data) {
-        foreach($data as $key=>$value) $data[$key] = $this->conn->real_escape_string($value);
+        $programId = intval($data['program_id'] ?? 0);
+        $program = [];
+
+        if($programId > 0) {
+            $result = $this->conn->query("SELECT leader, assistant_leader, members, project_cost, start_date, end_date, special_order_no FROM programs WHERE id=$programId");
+            if($result) $program = $result->fetch_assoc() ?: [];
+        }
+
+        $esc = function($value) {
+            return $this->conn->real_escape_string($value ?? '');
+        };
+        $inherit = function($key, $default = '') use ($data, $program, $esc) {
+            $value = $data[$key] ?? null;
+            if($value === null || $value === '') $value = $program[$key] ?? $default;
+            return $esc($value);
+        };
+
+        $projectTitle = $esc($data['project_title'] ?? '');
+        $sdg = $esc($data['sdg'] ?? '');
+        $partners = $esc($data['partners'] ?? '');
+        $typeOfClientele = $esc($data['type_of_clientele'] ?? '');
+        $participants = intval($data['participants'] ?? 0);
+        $leader = $inherit('leader');
+        $assistantLeader = $inherit('assistant_leader');
+        $members = $inherit('members');
+        $projectCost = $inherit('project_cost', '0');
+        $startDate = $inherit('start_date');
+        $endDate = $inherit('end_date');
+        $specialOrderNo = $inherit('special_order_no');
+        $barangay = $esc($data['barangay'] ?? '');
+        $barangayLatitude = $esc($data['barangay_latitude'] ?? '');
+        $barangayLongitude = $esc($data['barangay_longitude'] ?? '');
+        $municipality = $esc($data['municipality'] ?? '');
+        $province = $esc($data['province'] ?? '');
+        $latitude = $esc($data['latitude'] ?? '');
+        $longitude = $esc($data['longitude'] ?? '');
+        $status = $esc($data['status'] ?? 'On-going');
+
         return $this->conn->query("INSERT INTO projects(program_id, project_title, sdg, partners, type_of_clientele, leader, assistant_leader, members, participants, project_cost, start_date, end_date, special_order_no, barangay, barangay_latitude, barangay_longitude, municipality, province, latitude, longitude, status)
-            VALUES('{$data['program_id']}', '{$data['project_title']}', '{$data['sdg']}', '{$data['partners']}', '{$data['type_of_clientele']}', '{$data['leader']}', '{$data['assistant_leader']}', '{$data['members']}', '{$data['participants']}', '{$data['project_cost']}', '{$data['start_date']}', '{$data['end_date']}', '{$data['special_order_no']}', '{$data['barangay']}', '{$data['barangay_latitude']}', '{$data['barangay_longitude']}', '{$data['municipality']}', '{$data['province']}', '{$data['latitude']}', '{$data['longitude']}', '{$data['status']}')");
+            VALUES('$programId', '$projectTitle', '$sdg', '$partners', '$typeOfClientele', '$leader', '$assistantLeader', '$members', '$participants', '$projectCost', '$startDate', '$endDate', '$specialOrderNo', '$barangay', '$barangayLatitude', '$barangayLongitude', '$municipality', '$province', '$latitude', '$longitude', '$status')");
     }
 }
 ?>

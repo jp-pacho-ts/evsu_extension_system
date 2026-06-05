@@ -34,7 +34,7 @@
             </div>
 
             <div class="col-md-4">
-                <label>Status</label>
+                <label>Project Status</label>
                 <select name="status" class="form-select">
                     <option>On-going</option>
                     <option>Completed</option>
@@ -89,7 +89,7 @@
                     <th>Members</th>
                     <th>Activity</th>
                     <th>Monitoring Date</th>
-                    <th>Status</th>
+                    <th>Project Status</th>
                     <th>S.O.</th>
                     <th>Remarks</th>
                 </tr>

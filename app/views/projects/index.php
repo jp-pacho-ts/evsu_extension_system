@@ -40,44 +40,9 @@
                 <input name="type_of_clientele" class="form-control" placeholder="e.g., Students, Farmers, Residents">
             </div>
 
-            <div class="col-md-4">
-                <label>Project Leader</label>
-                <input name="leader" class="form-control">
-            </div>
-
-            <div class="col-md-4">
-                <label>Assistant Leader</label>
-                <input name="assistant_leader" class="form-control">
-            </div>
-
-            <div class="col-md-4">
-                <label>Members</label>
-                <textarea name="members" class="form-control" rows="1"></textarea>
-            </div>
-
             <div class="col-md-3">
                 <label>Participants</label>
                 <input type="number" name="participants" class="form-control" value="0">
-            </div>
-
-            <div class="col-md-3">
-                <label>Project Cost</label>
-                <input type="number" step="0.01" name="project_cost" class="form-control" value="0">
-            </div>
-
-            <div class="col-md-3">
-                <label>Start Date</label>
-                <input type="date" name="start_date" class="form-control">
-            </div>
-
-            <div class="col-md-3">
-                <label>End Date</label>
-                <input type="date" name="end_date" class="form-control">
-            </div>
-
-            <div class="col-md-4">
-                <label>Special Order No.</label>
-                <input name="special_order_no" class="form-control">
             </div>
 
             <div class="col-md-4">
@@ -123,7 +88,7 @@
             </div>
 
             <div class="col-md-4">
-                <label>Status</label>
+                <label>Initial Status</label>
                 <select name="status" class="form-select">
                     <?php foreach(['On-going','Completed','Terminated','Inactive','Expired'] as $s): ?>
                         <option><?= $s ?></option>
@@ -253,51 +218,5 @@ if (provinceSelect && municipalitySelect) {
 }
 </script>
 
-
-<script>
-function refreshBarangayDropdown() {
-    const province = document.getElementById('provinceSelect')?.value || '';
-    const municipality = document.getElementById('municipalitySelect')?.value || '';
-    const barangaySelect = document.getElementById('barangaySelect');
-    const barangayLatitudeInput = document.getElementById('barangayLatitudeInput');
-    const barangayLongitudeInput = document.getElementById('barangayLongitudeInput');
-
-    if(!barangaySelect) return;
-
-    barangaySelect.innerHTML = '<option value="">Select Barangay</option>';
-    if(barangayLatitudeInput) barangayLatitudeInput.value = '';
-    if(barangayLongitudeInput) barangayLongitudeInput.value = '';
-
-    (region8Barangays || [])
-        .filter(b => b.province === province && b.municipality === municipality)
-        .forEach(b => {
-            const opt = document.createElement('option');
-            opt.value = b.barangay;
-            opt.textContent = b.barangay;
-            opt.dataset.latitude = b.latitude;
-            opt.dataset.longitude = b.longitude;
-            barangaySelect.appendChild(opt);
-        });
-}
-
-document.getElementById('provinceSelect')?.addEventListener('change', refreshBarangayDropdown);
-document.getElementById('municipalitySelect')?.addEventListener('change', refreshBarangayDropdown);
-
-document.getElementById('barangaySelect')?.addEventListener('change', function() {
-    const selected = this.options[this.selectedIndex];
-    const lat = selected.dataset.latitude || '';
-    const lng = selected.dataset.longitude || '';
-
-    document.getElementById('barangayLatitudeInput').value = lat;
-    document.getElementById('barangayLongitudeInput').value = lng;
-
-    // Exact barangay coordinate auto-selection:
-    // Once barangay is selected, main GIS latitude/longitude use the barangay point.
-    if(lat && lng) {
-        document.getElementById('latitudeInput').value = lat;
-        document.getElementById('longitudeInput').value = lng;
-    }
-});
-</script>
 
 <?php include "app/views/layouts/footer.php"; ?>

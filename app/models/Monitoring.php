@@ -40,7 +40,7 @@ class Monitoring {
     public function create($data) {
         $project_id = intval($data['project_id'] ?? 0);
 
-        $project = $this->conn->query("SELECT barangay, municipality, province, status FROM projects WHERE id=$project_id")->fetch_assoc();
+        $project = $this->conn->query("SELECT status FROM projects WHERE id=$project_id")->fetch_assoc();
 
         $activity_title = $this->esc($data['activity_title'] ?? '');
         $monitoring_date = $this->esc($data['monitoring_date'] ?? '');
@@ -49,10 +49,6 @@ class Monitoring {
         $activity_description = $this->esc($data['activity_description'] ?? '');
         $remarks = $this->esc($data['remarks'] ?? '');
         $status = $this->esc($data['status'] ?? ($project['status'] ?? 'On-going'));
-
-        $barangay = $this->esc($project['barangay'] ?? '');
-        $municipality = $this->esc($project['municipality'] ?? '');
-        $province = $this->esc($project['province'] ?? '');
 
         $monitoringDateSql = $monitoring_date ? "'$monitoring_date'" : "NULL";
         $terminalDateSql = $terminal_report_date ? "'$terminal_report_date'" : "NULL";
@@ -65,10 +61,7 @@ class Monitoring {
             status,
             terminal_report_date,
             activity_description,
-            remarks,
-            barangay,
-            municipality,
-            province
+            remarks
         ) VALUES (
             $project_id,
             '$activity_title',
@@ -77,10 +70,7 @@ class Monitoring {
             '$status',
             $terminalDateSql,
             '$activity_description',
-            '$remarks',
-            '$barangay',
-            '$municipality',
-            '$province'
+            '$remarks'
         )");
 
         if($ok && $project_id > 0) {
