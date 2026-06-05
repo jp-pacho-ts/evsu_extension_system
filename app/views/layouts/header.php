@@ -15,6 +15,7 @@ function menuAllowed($r){ return hasRole($r); }
 <?php if(menuAllowed(['Super Admin','Admin','School Coordinator','Campus Director','VP ORIES','Reviewer'])): ?><a href="index.php?page=dashboard">📊 Dashboard</a><?php endif; ?>
 <?php if(menuAllowed(['Department Coordinator','Extension Staff','Super Admin','Admin'])): ?><a href="index.php?page=programs">📌 Programs</a><a href="index.php?page=projects">📁 Projects</a><?php endif; ?>
 <?php if(menuAllowed(['Department Coordinator','Extension Staff','School Coordinator','Campus Director','VP ORIES','Super Admin','Admin'])): ?><a href="index.php?page=monitoring">📝 Monitoring</a><a href="index.php?page=quarterly_reports">📑 Quarterly Report</a><?php endif; ?>
+<?php if(menuAllowed(['Super Admin','Admin','School Coordinator','Campus Director','Extension Director','VP ORIES'])): ?><a href="index.php?page=report">📄 Prescriptive Report</a><?php endif; ?>
 <?php if(menuAllowed(['Super Admin','Admin','Campus Director','VP ORIES'])): ?><a href="index.php?page=map">🗺️ GIS Map</a><?php endif; ?>
 <?php if(menuAllowed(['Super Admin','Admin'])): ?><a href="index.php?page=users">👥 User Management</a><a href="index.php?page=logs">📜 Activity Logs</a><?php endif; ?>
 <hr><p class="small mb-1">Logged in as:</p><p class="fw-bold mb-1"><?= htmlspecialchars($_SESSION['fullname']??'') ?></p><p class="badge bg-light text-dark"><?= htmlspecialchars($displayRole) ?></p><a href="index.php?page=logout" class="mt-3">🚪 Logout</a>

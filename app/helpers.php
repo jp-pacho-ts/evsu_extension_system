@@ -14,7 +14,15 @@ function statusColor($s){ return ['On-going'=>'#2563eb','Completed'=>'#16a34a','
 function computeESFI($m,$p){ return round(($m*0.70)+(($p/100)*0.30),2); }
 function esfiInterpretation($e){ if($e<1.50)return "Low Service Coverage"; if($e<3.00)return "Moderate Service Distribution"; return "High Service Concentration"; }
 function esfiBadge($e){ if($e<1.50)return "secondary"; if($e<3.00)return "warning"; return "danger"; }
-function decisionSupport($s){ return "Review project status."; }
+function decisionSupport($s){
+    return [
+        'On-going' => 'Continue monitoring implementation progress and document the next action.',
+        'Completed' => 'Validate outcomes, secure terminal documentation, and prepare closeout records.',
+        'Inactive' => 'Check implementation blockers and prepare a reactivation plan.',
+        'Expired' => 'Review extension requirements or move the project toward closeout.',
+        'Terminated' => 'Document the termination reason and archive supporting decisions.'
+    ][$s] ?? "Review project status.";
+}
 
 function pendingApprovalCount($db) {
     if(!$db) return 0;

@@ -5,7 +5,10 @@ class Project {
 
     public function all() {
         $sql = "SELECT projects.*, programs.program_title,
-                (SELECT COUNT(*) FROM monitoring_entries WHERE monitoring_entries.project_id = projects.id) AS monitoring_count
+                (SELECT COUNT(*) FROM monitoring_entries WHERE monitoring_entries.project_id = projects.id) AS monitoring_count,
+                (SELECT me.activity_title FROM monitoring_entries me WHERE me.project_id = projects.id ORDER BY me.monitoring_date DESC, me.id DESC LIMIT 1) AS latest_monitoring_title,
+                (SELECT me.monitoring_date FROM monitoring_entries me WHERE me.project_id = projects.id ORDER BY me.monitoring_date DESC, me.id DESC LIMIT 1) AS latest_monitoring_date,
+                (SELECT COALESCE(NULLIF(me.activity_description,''), NULLIF(me.remarks,''), '') FROM monitoring_entries me WHERE me.project_id = projects.id ORDER BY me.monitoring_date DESC, me.id DESC LIMIT 1) AS latest_update
                 FROM projects
                 JOIN programs ON programs.id = projects.program_id
                 ORDER BY projects.created_at DESC";

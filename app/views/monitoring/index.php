@@ -19,7 +19,7 @@
             </div>
 
             <div class="col-md-4">
-                <label>Activity Title</label>
+                <label>Additional Monitoring Title</label>
                 <input name="activity_title" class="form-control" required>
             </div>
 
@@ -50,7 +50,7 @@
             </div>
 
             <div class="col-md-6">
-                <label>Activity Description</label>
+                <label>Recent Update</label>
                 <textarea name="activity_description" class="form-control"></textarea>
             </div>
 
@@ -87,9 +87,10 @@
                     <th>Leader</th>
                     <th>Assistant</th>
                     <th>Members</th>
-                    <th>Activity</th>
+                    <th>Additional Monitoring</th>
                     <th>Monitoring Date</th>
                     <th>Project Status</th>
+                    <th>Recent Update</th>
                     <th>S.O.</th>
                     <th>Remarks</th>
                 </tr>
@@ -130,13 +131,14 @@
                                 </select>
                             </form>
                         </td>
+                        <td><?= htmlspecialchars($m['activity_description'] ?? '') ?></td>
                         <td><?= htmlspecialchars($m['special_order_no'] ?? '') ?></td>
                         <td><?= htmlspecialchars($m['remarks'] ?? '') ?></td>
                     </tr>
                 <?php endforeach; ?>
 
                 <?php if(empty($monitoring ?? $records ?? [])): ?>
-                    <tr><td colspan="16" class="text-muted text-center">No monitoring records yet.</td></tr>
+                    <tr><td colspan="17" class="text-muted text-center">No monitoring records yet.</td></tr>
                 <?php endif; ?>
             </tbody>
         </table>
