@@ -1,8 +1,7 @@
 <?php include 'app/views/layouts/header.php'; ?>
 
 <div class="card p-4">
-    <div class="d-flex justify-content-between no-print">
-        <h2 class="fw-bold">Monitoring Prescriptive Decision Report</h2>
+    <div class="d-flex justify-content-end no-print mb-3">
         <button onclick="window.print()" class="btn btn-primary">Print / Save as PDF</button>
     </div>
 

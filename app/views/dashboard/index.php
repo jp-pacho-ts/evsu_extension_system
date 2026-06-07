@@ -1,6 +1,5 @@
 <?php include 'app/views/layouts/header.php'; ?>
 
-<h2 class="fw-bold">Executive Monitoring Dashboard</h2>
 <p class="text-muted">University-wide consolidated analytics, GIS-ready monitoring, and prescriptive analytics based on Extension Office monitoring status.</p>
 
 <div class="row g-3 mb-4">

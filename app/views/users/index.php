@@ -1,7 +1,13 @@
 <?php include "app/views/layouts/header.php"; ?>
 
-<h2 class="fw-bold">👥 User Management</h2>
-<p class="text-muted">Manage accounts, roles, signatories, and routing groups.</p>
+<div class="d-flex flex-wrap justify-content-between align-items-start gap-3 mb-3">
+    <p class="text-muted mb-0">Manage accounts, roles, signatories, and routing groups.</p>
+    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addUserModal">Create Account</button>
+</div>
+
+<?php if(isset($message) && $message): ?>
+    <div class="alert alert-info"><?= htmlspecialchars($message) ?></div>
+<?php endif; ?>
 
 <?php
 $search = strtolower($_GET['search'] ?? '');
@@ -22,43 +28,15 @@ foreach($usersFiltered as $u) {
     $college = $u['college'] ?: 'Unassigned College';
     $colleges[$college][] = $u;
 }
-?>
 
-<div class="card p-3 mb-4">
-    <h5 class="fw-bold">Add / Create Account</h5>
-    <form method="POST" enctype="multipart/form-data">
-        <input type="hidden" name="create_user" value="1">
-        <div class="row g-2">
-            <div class="col-md-3"><label>Full Name</label><input name="fullname" class="form-control" required></div>
-            <div class="col-md-2"><label>Username</label><input name="username" class="form-control" required></div>
-            <div class="col-md-2"><label>Password</label><input name="password" type="password" class="form-control" required></div>
-            <div class="col-md-2"><label>Role</label>
-                <select name="role" class="form-select">
-                    <option>Department Coordinator</option>
-                    <option>School Coordinator</option>
-                    <option>Campus Director</option>
-                    <option>VP ORIES</option>
-                    <option>Super Admin</option>
-                    <option>Admin</option>
-                </select>
-            </div>
-            <div class="col-md-3"><label>Email</label><input name="email" class="form-control"></div>
-            <div class="col-md-3"><label>College</label><input name="college" class="form-control" placeholder="School of Engineering"></div>
-            <div class="col-md-3"><label>Department</label><input name="department" class="form-control" placeholder="Information Technology"></div>
-            <div class="col-md-3"><label>Campus</label><input name="campus" class="form-control" placeholder="Main"></div>
-            <div class="col-md-3"><label>Signatory Title</label><input name="signatory_title" class="form-control" placeholder="Extension Coordinator / Dean"></div>
-            <div class="col-md-3"><label>Routing Group</label><input name="routing_group" class="form-control" placeholder="SOE / Main Campus"></div>
-            <div class="col-md-3"><label>Status</label>
-                <select name="account_status" class="form-select">
-                    <option>Active</option>
-                    <option>Inactive</option>
-                </select>
-            </div>
-            <div class="col-md-3"><label>Signature Image</label><input type="file" name="signature_image" class="form-control" accept="image/png,image/jpeg"></div>
-            <div class="col-12"><button class="btn btn-primary">Create Account</button></div>
-        </div>
-    </form>
-</div>
+$roleOptions = ['Faculty','Department Coordinator','School Coordinator','Campus Director','VP ORIES','Super Admin','Admin'];
+$nameForRole = function($list, $role, $fallback) {
+    foreach($list as $item) {
+        if(($item['role'] ?? '') === $role) return $item['fullname'] ?? $fallback;
+    }
+    return $fallback;
+};
+?>
 
 <div class="card p-3 mb-4">
     <h5 class="fw-bold">Search / Filter Users</h5>
@@ -84,7 +62,7 @@ foreach($usersFiltered as $u) {
     <h5 class="fw-bold">Signatory Routing Management UI</h5>
     <p class="text-muted small">Use this as routing reference for school/campus approval flow.</p>
     <div class="table-responsive">
-        <table class="table table-bordered align-middle">
+        <table class="table table-bordered align-middle mb-0">
             <thead class="table-light">
                 <tr>
                     <th>College / School</th>
@@ -105,8 +83,8 @@ foreach($usersFiltered as $u) {
                     <tr>
                         <td><?= htmlspecialchars($college) ?></td>
                         <td><?= htmlspecialchars($dept) ?></td>
-                        <td><?= htmlspecialchars(($list[array_search('School Coordinator', array_column($list,'role'))]['fullname'] ?? 'schoolcoord')) ?></td>
-                        <td><?= htmlspecialchars(($list[array_search('Campus Director', array_column($list,'role'))]['fullname'] ?? 'campusdirector')) ?></td>
+                        <td><?= htmlspecialchars($nameForRole($list, 'School Coordinator', 'schoolcoord')) ?></td>
+                        <td><?= htmlspecialchars($nameForRole($list, 'Campus Director', 'campusdirector')) ?></td>
                         <td>System Super Admin / Extension Office</td>
                         <td>VP ORIES</td>
                     </tr>
@@ -129,39 +107,40 @@ foreach($usersFiltered as $u) {
         <div id="college<?= $i ?>" class="accordion-collapse collapse <?= $i==1?'show':'' ?>" data-bs-parent="#collegeAccordion">
             <div class="accordion-body">
                 <div class="table-responsive">
-                    <table class="table table-hover table-bordered align-middle">
+                    <table class="table table-hover table-bordered align-middle mb-0">
                         <thead class="table-light">
                             <tr>
-                                <th>Name</th><th>Username</th><th>Role</th><th>Department</th><th>Campus</th><th>Status</th><th>Signature</th><th>Update</th>
+                                <th>Name</th>
+                                <th>Username</th>
+                                <th>Role</th>
+                                <th>Department</th>
+                                <th>Campus</th>
+                                <th>Signatory</th>
+                                <th>Ext. Services</th>
+                                <th>Status</th>
+                                <th>Signature</th>
+                                <th class="text-end actions-column">Actions</th>
                             </tr>
                         </thead>
                         <tbody>
                         <?php foreach($list as $u): ?>
+                            <?php $userId = intval($u['id']); ?>
                             <tr>
-                                <form method="POST" enctype="multipart/form-data">
-                                    <input type="hidden" name="update_user" value="1">
-                                    <input type="hidden" name="id" value="<?= $u['id'] ?>">
-                                    <td><input name="fullname" class="form-control form-control-sm" value="<?= htmlspecialchars($u['fullname'] ?? '') ?>"></td>
-                                    <td><input name="username" class="form-control form-control-sm" value="<?= htmlspecialchars($u['username'] ?? '') ?>"></td>
-                                    <td><input name="role" class="form-control form-control-sm" value="<?= htmlspecialchars($u['role'] ?? '') ?>"></td>
-                                    <td><input name="department" class="form-control form-control-sm" value="<?= htmlspecialchars($u['department'] ?? '') ?>"></td>
-                                    <td><input name="campus" class="form-control form-control-sm" value="<?= htmlspecialchars($u['campus'] ?? '') ?>"></td>
-                                    <td>
-                                        <select name="account_status" class="form-select form-select-sm">
-                                            <option <?= ($u['account_status']??'Active')=='Active'?'selected':'' ?>>Active</option>
-                                            <option <?= ($u['account_status']??'')=='Inactive'?'selected':'' ?>>Inactive</option>
-                                        </select>
-                                        <input name="college" type="hidden" value="<?= htmlspecialchars($u['college'] ?? '') ?>">
-                                        <input name="email" type="hidden" value="<?= htmlspecialchars($u['email'] ?? '') ?>">
-                                        <input name="signatory_title" type="hidden" value="<?= htmlspecialchars($u['signatory_title'] ?? '') ?>">
-                                        <input name="password" type="hidden" value="">
-                                    </td>
-                                    <td>
-                                        <input type="file" name="signature_image" class="form-control form-control-sm" accept="image/png,image/jpeg">
-                                        <?php if(!empty($u['signature_image'])): ?><small class="text-success">Uploaded</small><?php endif; ?>
-                                    </td>
-                                    <td><button class="btn btn-sm btn-success">Update</button></td>
-                                </form>
+                                <td><?= htmlspecialchars($u['fullname'] ?? '') ?></td>
+                                <td><?= htmlspecialchars($u['username'] ?? '') ?></td>
+                                <td><?= htmlspecialchars($u['role'] ?? '') ?></td>
+                                <td><?= htmlspecialchars($u['department'] ?? '') ?></td>
+                                <td><?= htmlspecialchars($u['campus'] ?? '') ?></td>
+                                <td><?= htmlspecialchars($u['signatory_title'] ?? '') ?></td>
+                                <td><?= !empty($u['has_extension_services']) ? 'Yes' : 'No' ?></td>
+                                <td><span class="badge bg-<?= ($u['account_status'] ?? 'Active') === 'Active' ? 'success' : 'secondary' ?>"><?= htmlspecialchars($u['account_status'] ?? 'Active') ?></span></td>
+                                <td><?= !empty($u['signature_image']) ? '<span class="text-success">Uploaded</span>' : '<span class="text-muted">None</span>' ?></td>
+                                <td class="text-end table-actions actions-column">
+                                    <button class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#editUserModal<?= $userId ?>">Edit</button>
+                                    <?php if(($u['username'] ?? '') !== 'admin'): ?>
+                                        <button class="btn btn-sm btn-outline-danger" data-bs-toggle="modal" data-bs-target="#deleteUserModal<?= $userId ?>">Delete</button>
+                                    <?php endif; ?>
+                                </td>
                             </tr>
                         <?php endforeach; ?>
                         </tbody>
@@ -172,5 +151,77 @@ foreach($usersFiltered as $u) {
     </div>
 <?php endforeach; ?>
 </div>
+
+<div class="modal fade" id="addUserModal" tabindex="-1" aria-labelledby="addUserModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-scrollable">
+        <div class="modal-content">
+            <form method="POST" enctype="multipart/form-data">
+                <input type="hidden" name="create_user" value="1">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="addUserModalLabel">Create Account</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <?php $userForm = []; $isEdit = false; include "app/views/users/_form.php"; ?>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button class="btn btn-primary">Create Account</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<?php foreach($usersFiltered as $u): ?>
+    <?php $userId = intval($u['id']); ?>
+    <div class="modal fade" id="editUserModal<?= $userId ?>" tabindex="-1" aria-labelledby="editUserModalLabel<?= $userId ?>" aria-hidden="true">
+        <div class="modal-dialog modal-xl modal-dialog-scrollable">
+            <div class="modal-content">
+                <form method="POST" enctype="multipart/form-data">
+                    <input type="hidden" name="update_user" value="1">
+                    <input type="hidden" name="user_id" value="<?= $userId ?>">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="editUserModalLabel<?= $userId ?>">Edit Account</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <?php $userForm = $u; $isEdit = true; include "app/views/users/_form.php"; ?>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button class="btn btn-primary">Update Account</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <?php if(($u['username'] ?? '') !== 'admin'): ?>
+        <div class="modal fade" id="deleteUserModal<?= $userId ?>" tabindex="-1" aria-labelledby="deleteUserModalLabel<?= $userId ?>" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <form method="POST">
+                        <input type="hidden" name="delete_user" value="1">
+                        <input type="hidden" name="user_id" value="<?= $userId ?>">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="deleteUserModalLabel<?= $userId ?>">Delete Account</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body">
+                            <p class="mb-1">Delete this account?</p>
+                            <p class="fw-bold mb-0"><?= htmlspecialchars($u['fullname'] ?? '') ?></p>
+                            <p class="text-muted small mt-2 mb-0">This removes the user account from the system.</p>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                            <button class="btn btn-danger">Delete Account</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    <?php endif; ?>
+<?php endforeach; ?>
 
 <?php include "app/views/layouts/footer.php"; ?>

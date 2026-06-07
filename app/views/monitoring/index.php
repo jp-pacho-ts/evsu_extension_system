@@ -1,6 +1,5 @@
 <?php include "app/views/layouts/header.php"; ?>
 
-<h2 class="fw-bold">📝 Monitoring</h2>
 <p class="text-muted">Add monitoring entries and update project status.</p>
 <?php if(isset($_GET['saved'])): ?>
     <div class="alert alert-success">Monitoring entry saved successfully.</div>

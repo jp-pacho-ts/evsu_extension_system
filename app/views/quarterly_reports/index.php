@@ -1,6 +1,13 @@
 <?php include "app/views/layouts/header.php"; ?>
+<?php
+$profile = $currentUserProfile ?? [];
+$defaultCollege = $profile['college'] ?? 'School of Engineering';
+$defaultCampus = $profile['campus'] ?? 'Main';
+$defaultDepartment = $profile['department'] ?? 'Information Technology';
+$defaultPreparedBy = $profile['fullname'] ?? 'LYRA K. NUEVAS, PhD';
+$defaultPreparedTitle = $profile['signatory_title'] ?? 'Extension Coordinator';
+?>
 
-<h2 class="fw-bold">📑 Quarterly Monitoring Report</h2>
 <p class="text-muted"><?= ($canManageQuarterlyReports ?? false) ? 'Create quarterly monitoring report and submit it for review/approval.' : 'View saved quarterly monitoring reports.' ?></p>
 
 <?php if(isset($message) && $message): ?>
@@ -12,9 +19,9 @@
 <form method="POST">
     <h5 class="fw-bold">Report Header</h5>
     <div class="row g-3">
-        <div class="col-md-4"><label>College</label><input name="college" class="form-control" value="School of Engineering"></div>
-        <div class="col-md-4"><label>Campus</label><input name="campus" class="form-control" value="Main"></div>
-        <div class="col-md-4"><label>Department</label><input name="department" class="form-control" value="Information Technology"></div>
+        <div class="col-md-4"><label>College</label><input name="college" class="form-control" value="<?= htmlspecialchars($defaultCollege) ?>"></div>
+        <div class="col-md-4"><label>Campus</label><input name="campus" class="form-control" value="<?= htmlspecialchars($defaultCampus) ?>"></div>
+        <div class="col-md-4"><label>Department</label><input name="department" class="form-control" value="<?= htmlspecialchars($defaultDepartment) ?>"></div>
         <div class="col-md-3"><label>Period Covered</label><input name="period_covered" class="form-control" value="1st Quarter 2026"></div>
         <div class="col-md-3"><label>Control No.</label><input name="control_no" class="form-control" value="EVSU-OPRDEX-F-028"></div>
         <div class="col-md-3"><label>Revision No.</label><input name="revision_no" class="form-control" value="01"></div>
@@ -63,8 +70,8 @@
 
     <h5 class="fw-bold">Signatories</h5>
     <div class="row g-3">
-        <div class="col-md-4"><label>Prepared by</label><input name="prepared_by" class="form-control" value="LYRA K. NUEVAS, PhD"></div>
-        <div class="col-md-4"><label>Prepared Title</label><input name="prepared_title" class="form-control" value="Extension Coordinator"></div>
+        <div class="col-md-4"><label>Prepared by</label><input name="prepared_by" class="form-control" value="<?= htmlspecialchars($defaultPreparedBy) ?>"></div>
+        <div class="col-md-4"><label>Prepared Title</label><input name="prepared_title" class="form-control" value="<?= htmlspecialchars($defaultPreparedTitle) ?>"></div>
         <div class="col-md-4"><label>Noted by: Campus Director/Dean</label><input name="noted_by_dean" class="form-control" value="VINYL H. OGOLINO, PhD"></div>
         <div class="col-md-4"><label>Dean Title</label><input name="noted_by_dean_title" class="form-control" value="Campus Director/Dean"></div>
         <div class="col-md-4"><label>Noted by: Extension Director</label><input name="noted_by_extension_director" class="form-control" value="RUSTOM D. CLEMENTE, MSIT"></div>
@@ -90,6 +97,7 @@
             </thead>
             <tbody>
             <?php foreach($reports as $r): ?>
+                <?php $canManageThisReport = $reportPermissions[$r['id']] ?? ($canManageQuarterlyReports ?? false); ?>
                 <tr>
                     <td><?= htmlspecialchars($r['college']) ?></td>
                     <td><?= htmlspecialchars($r['department']) ?></td>
@@ -105,10 +113,10 @@
                     <td><?= htmlspecialchars($r['report_date']) ?></td>
                     <td>
                         <a class="btn btn-sm btn-outline-primary" href="index.php?page=view_quarterly_report&id=<?= $r['id'] ?>">View / Print</a>
-                        <?php if(($canManageQuarterlyReports ?? false) && in_array(($r['submission_status'] ?? 'Draft'), ['Draft','Recalled','For Revision','Not Approved'])): ?><a class="btn btn-sm btn-outline-success" href="index.php?page=edit_quarterly_report&id=<?= $r['id'] ?>">Edit</a><?php endif; ?>
-                        <?php if(($canManageQuarterlyReports ?? false) && in_array(($r['submission_status'] ?? 'Draft'), ['Submitted','Under Review'])): ?><a class="btn btn-sm btn-warning" onclick="return confirm('Recall this submission for correction?')" href="index.php?page=recall_quarterly_report&id=<?= $r['id'] ?>">Recall</a><?php endif; ?>
-                        <?php if(($canManageQuarterlyReports ?? false) && (in_array(($r['submission_status'] ?? 'Draft'), ['Draft','Recalled','For Revision','Not Approved']) || hasRole(['Super Admin']))): ?><a class="btn btn-sm btn-outline-danger" onclick="return confirm('Delete this report?')" href="index.php?page=delete_quarterly_report&id=<?= $r['id'] ?>">Delete</a><?php endif; ?>
-                        <?php if(($canManageQuarterlyReports ?? false) && in_array(($r['submission_status'] ?? 'Draft'), ['Draft','For Revision','Not Approved'])): ?>
+                        <?php if($canManageThisReport && in_array(($r['submission_status'] ?? 'Draft'), ['Draft','Recalled','For Revision','Not Approved'])): ?><a class="btn btn-sm btn-outline-success" href="index.php?page=edit_quarterly_report&id=<?= $r['id'] ?>">Edit</a><?php endif; ?>
+                        <?php if($canManageThisReport && in_array(($r['submission_status'] ?? 'Draft'), ['Submitted','Under Review'])): ?><a class="btn btn-sm btn-warning" onclick="return confirm('Recall this submission for correction?')" href="index.php?page=recall_quarterly_report&id=<?= $r['id'] ?>">Recall</a><?php endif; ?>
+                        <?php if($canManageThisReport && (in_array(($r['submission_status'] ?? 'Draft'), ['Draft','Recalled','For Revision','Not Approved']) || hasRole(['Super Admin']))): ?><a class="btn btn-sm btn-outline-danger" onclick="return confirm('Delete this report?')" href="index.php?page=delete_quarterly_report&id=<?= $r['id'] ?>">Delete</a><?php endif; ?>
+                        <?php if($canManageThisReport && in_array(($r['submission_status'] ?? 'Draft'), ['Draft','For Revision','Not Approved'])): ?>
                             <a class="btn btn-sm btn-success" href="index.php?page=submit_quarterly_report&id=<?= $r['id'] ?>">Submit</a>
                         <?php endif; ?>
                     </td>

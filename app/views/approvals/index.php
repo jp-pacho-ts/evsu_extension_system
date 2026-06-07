@@ -1,6 +1,5 @@
 <?php include "app/views/layouts/header.php"; ?>
 
-<h2 class="fw-bold">Approval Queue</h2>
 <p class="text-muted">Reports shown here depend on your current quarterly report approval level.</p>
 
 <div class="card p-3">

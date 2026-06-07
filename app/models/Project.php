@@ -69,5 +69,56 @@ class Project {
         return $this->conn->query("INSERT INTO projects(program_id, project_title, sdg, partners, type_of_clientele, leader, assistant_leader, members, participants, project_cost, start_date, end_date, special_order_no, barangay, barangay_latitude, barangay_longitude, municipality, province, latitude, longitude, status)
             VALUES('$programId', '$projectTitle', '$sdg', '$partners', '$typeOfClientele', '$leader', '$assistantLeader', '$members', '$participants', '$projectCost', '$startDate', '$endDate', '$specialOrderNo', '$barangay', '$barangayLatitude', '$barangayLongitude', '$municipality', '$province', '$latitude', '$longitude', '$status')");
     }
+
+    public function update($data) {
+        $id = intval($data['project_id'] ?? $data['id'] ?? 0);
+        if($id <= 0) return false;
+
+        $esc = function($value) {
+            return $this->conn->real_escape_string($value ?? '');
+        };
+
+        $programId = intval($data['program_id'] ?? 0);
+        $projectTitle = $esc($data['project_title'] ?? '');
+        $sdg = $esc($data['sdg'] ?? '');
+        $partners = $esc($data['partners'] ?? '');
+        $typeOfClientele = $esc($data['type_of_clientele'] ?? '');
+        $participants = intval($data['participants'] ?? 0);
+        $barangay = $esc($data['barangay'] ?? '');
+        $barangayLatitude = $esc($data['barangay_latitude'] ?? '');
+        $barangayLongitude = $esc($data['barangay_longitude'] ?? '');
+        $municipality = $esc($data['municipality'] ?? '');
+        $province = $esc($data['province'] ?? '');
+        $latitude = $esc($data['latitude'] ?? '');
+        $longitude = $esc($data['longitude'] ?? '');
+        $status = $esc($data['status'] ?? 'On-going');
+
+        return $this->conn->query("UPDATE projects SET
+                program_id='$programId',
+                project_title='$projectTitle',
+                sdg='$sdg',
+                partners='$partners',
+                type_of_clientele='$typeOfClientele',
+                participants='$participants',
+                barangay='$barangay',
+                barangay_latitude='$barangayLatitude',
+                barangay_longitude='$barangayLongitude',
+                municipality='$municipality',
+                province='$province',
+                latitude='$latitude',
+                longitude='$longitude',
+                status='$status'
+            WHERE id=$id");
+    }
+
+    public function delete($id) {
+        $id = intval($id);
+        if($id <= 0) return false;
+
+        $linked = $this->conn->query("SELECT COUNT(*) AS total FROM monitoring_entries WHERE project_id=$id");
+        if($linked && intval($linked->fetch_assoc()['total'] ?? 0) > 0) return false;
+
+        return $this->conn->query("DELETE FROM projects WHERE id=$id");
+    }
 }
 ?>

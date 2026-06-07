@@ -1,14 +1,9 @@
 <?php include "app/views/layouts/header.php"; ?>
 
-<div class="d-flex justify-content-between align-items-center mb-3">
-    <div>
-        <h2 class="fw-bold">🔔 Pending Approvals</h2>
-        <p class="text-muted">Documents that need action from your account appear here.</p>
-    </div>
-</div>
+<p class="text-muted">Documents that need action from your account appear here.</p>
 
 <div class="card p-3">
-    <h5 class="fw-bold">✅ Approval Transactions</h5>
+    <h5 class="fw-bold">Approval Transactions</h5>
     <p class="text-muted small">The number on the bell is based on these pending approval transactions.</p>
 
     <div class="table-responsive">

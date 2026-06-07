@@ -1,6 +1,5 @@
 <?php include "app/views/layouts/header.php"; ?>
 
-<h2 class="fw-bold">🗺️ Region 8 GIS Map Analytics</h2>
 <p class="text-muted">
     Heatmap, markers, and coverage highlights can now be used together. Hover over markers to view project details.
 </p>

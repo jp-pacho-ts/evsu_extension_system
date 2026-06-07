@@ -1,5 +1,6 @@
 <?php include "app/views/layouts/header.php"; ?>
-<h2 class="fw-bold">✏️ Edit Quarterly Monitoring Report</h2><p class="text-muted">Updates the same report. No duplicate submission is created.</p>
+
+<p class="text-muted">Updates the same report. No duplicate submission is created.</p>
 <?php if(isset($message)&&$message): ?><div class="alert alert-danger"><?= htmlspecialchars($message) ?></div><?php endif; ?>
 <div class="alert alert-info">Current Status: <b><?= htmlspecialchars($report['submission_status']??'Draft') ?></b></div>
 <div class="card p-4 mb-4"><form method="POST">

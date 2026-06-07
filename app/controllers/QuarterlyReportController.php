@@ -13,7 +13,8 @@ class QuarterlyReportController {
         'Extension Director',
         'VP ORIES',
         'Super Admin',
-        'Admin'
+        'Admin',
+        'Faculty'
     ];
 
     private $showRoles = [
@@ -25,6 +26,7 @@ class QuarterlyReportController {
         'VP ORIES',
         'Super Admin',
         'Admin',
+        'Faculty',
         'Reviewer'
     ];
 
@@ -40,8 +42,29 @@ class QuarterlyReportController {
         $this->model = new QuarterlyReport($db);
     }
 
-    private function canManageReports() {
-        return hasRole($this->manageRoles);
+    private function canManageReports($report = null) {
+        if(hasRole($this->manageRoles)) return true;
+        if(!hasRole(['Faculty']) || !userHasExtensionServices($this->db)) return false;
+        if($report === null) return true;
+
+        $uid = intval($_SESSION['user_id'] ?? 0);
+        if($uid <= 0) return false;
+
+        return intval($report['created_by'] ?? 0) === $uid || intval($report['submitted_by'] ?? 0) === $uid;
+    }
+
+    private function denyAccess() {
+        include "app/views/access_denied.php";
+        exit();
+    }
+
+    private function currentUserProfile() {
+        $uid = intval($_SESSION['user_id'] ?? 0);
+        if($uid <= 0) return [];
+
+        $result = @$this->db->query("SELECT * FROM users WHERE id=$uid LIMIT 1");
+        if(!$result) return [];
+        return $result->fetch_assoc() ?: [];
     }
 
     private function collectItems() {
@@ -85,21 +108,23 @@ class QuarterlyReportController {
             $message = 'Unable to save quarterly report.';
         }
 
+        $currentUserProfile = $this->currentUserProfile();
         $reports = $this->model->all();
+        $reportPermissions = [];
+        foreach($reports as $report) {
+            $reportPermissions[$report['id']] = $this->canManageReports($report);
+        }
         include "app/views/quarterly_reports/index.php";
     }
 
     public function edit() {
-        requireRole($this->manageRoles);
+        requireLogin();
 
-        $id = intval($_GET['id']);
+        $id = intval($_GET['id'] ?? 0);
         $report = $this->model->find($id);
         $items = $this->model->items($id);
 
-        if(!$report || !$this->model->canEdit($report)) {
-            include "app/views/access_denied.php";
-            exit();
-        }
+        if(!$report || !$this->canManageReports($report) || !$this->model->canEdit($report)) $this->denyAccess();
 
         $message = '';
         if($_SERVER['REQUEST_METHOD'] == 'POST') {
@@ -127,37 +152,49 @@ class QuarterlyReportController {
 
         $items = $this->model->items($id);
         $approvals = $this->model->approvals($id);
-        $canManageQuarterlyReports = $this->canManageReports();
+        $canManageQuarterlyReports = $this->canManageReports($report);
 
         include "app/views/quarterly_reports/show.php";
     }
 
     public function submit() {
-        requireRole($this->manageRoles);
+        requireLogin();
 
-        $id = intval($_GET['id']);
-        $this->model->submit($id, $_SESSION['user_id']);
-        logActivity($this->db, 'Submit Quarterly Report', 'Quarterly Report', 'Submitted report ID: '.$id);
+        $id = intval($_GET['id'] ?? 0);
+        $report = $this->model->find($id);
+        if(!$report || !$this->canManageReports($report)) $this->denyAccess();
+
+        if($this->model->submit($id, $_SESSION['user_id'])) {
+            logActivity($this->db, 'Submit Quarterly Report', 'Quarterly Report', 'Submitted report ID: '.$id);
+        }
         header('Location: index.php?page=view_quarterly_report&id='.$id);
         exit();
     }
 
     public function recall() {
-        requireRole($this->manageRoles);
+        requireLogin();
 
-        $id = intval($_GET['id']);
-        $this->model->recall($id, $_SESSION['user_id']);
-        logActivity($this->db, 'Recall Submission', 'Quarterly Report', 'Recalled report ID: '.$id);
+        $id = intval($_GET['id'] ?? 0);
+        $report = $this->model->find($id);
+        if(!$report || !$this->canManageReports($report)) $this->denyAccess();
+
+        if($this->model->recall($id, $_SESSION['user_id'])) {
+            logActivity($this->db, 'Recall Submission', 'Quarterly Report', 'Recalled report ID: '.$id);
+        }
         header('Location: index.php?page=edit_quarterly_report&id='.$id);
         exit();
     }
 
     public function delete() {
-        requireRole($this->manageRoles);
+        requireLogin();
 
-        $id = intval($_GET['id']);
-        $this->model->delete($id);
-        logActivity($this->db, 'Delete Quarterly Report', 'Quarterly Report', 'Deleted report ID: '.$id);
+        $id = intval($_GET['id'] ?? 0);
+        $report = $this->model->find($id);
+        if(!$report || !$this->canManageReports($report)) $this->denyAccess();
+
+        if($this->model->delete($id)) {
+            logActivity($this->db, 'Delete Quarterly Report', 'Quarterly Report', 'Deleted report ID: '.$id);
+        }
         header('Location: index.php?page=quarterly_reports');
         exit();
     }

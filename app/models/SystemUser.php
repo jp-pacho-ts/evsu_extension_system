@@ -1,7 +1,58 @@
 <?php
-class SystemUser{private $conn; function __construct($db){$this->conn=$db;}
-function all(){ $r=$this->conn->query("SELECT * FROM users ORDER BY COALESCE(college,''),role,fullname"); $d=[]; if($r)while($x=$r->fetch_assoc())$d[]=$x; return $d; }
-function create($d){ foreach($d as $k=>$v)$d[$k]=$this->conn->real_escape_string($v); $pw=md5($d['password']); $cb=intval(($_SESSION['user_id'] ?? $_SESSION['id'] ?? 0)??0); return $this->conn->query("INSERT INTO users(fullname,username,password,role,college,department,campus,email,signatory_title,account_status,created_by) VALUES('{$d['fullname']}','{$d['username']}','$pw','{$d['role']}','{$d['college']}','{$d['department']}','{$d['campus']}','{$d['email']}','{$d['signatory_title']}','{$d['account_status']}',$cb)"); }
-function update($d){ foreach($d as $k=>$v)$d[$k]=$this->conn->real_escape_string($v); $id=intval($d['user_id']); $pw=!empty($d['password'])?", password='".md5($d['password'])."'":""; return $this->conn->query("UPDATE users SET fullname='{$d['fullname']}',username='{$d['username']}',role='{$d['role']}',college='{$d['college']}',department='{$d['department']}',campus='{$d['campus']}',email='{$d['email']}',signatory_title='{$d['signatory_title']}',account_status='{$d['account_status']}' $pw WHERE id=$id");}
-function delete($id){$id=intval($id); return $this->conn->query("DELETE FROM users WHERE id=$id AND username<>'admin'");}
-}?>
+class SystemUser {
+    private $conn;
+
+    function __construct($db) {
+        $this->conn = $db;
+        if(function_exists('ensureUserExtensionServicesColumn')) {
+            ensureUserExtensionServicesColumn($this->conn);
+        }
+    }
+
+    function all() {
+        $r = $this->conn->query("SELECT * FROM users ORDER BY COALESCE(college,''), role, fullname");
+        $d = [];
+        if($r) while($x = $r->fetch_assoc()) $d[] = $x;
+        return $d;
+    }
+
+    function create($d) {
+        foreach($d as $k => $v) $d[$k] = $this->conn->real_escape_string($v);
+
+        $pw = md5($d['password']);
+        $cb = intval(($_SESSION['user_id'] ?? $_SESSION['id'] ?? 0) ?? 0);
+        $hasExtensionServices = intval($d['has_extension_services'] ?? 0);
+
+        return $this->conn->query("INSERT INTO users(fullname, username, password, role, college, department, campus, email, signatory_title, has_extension_services, routing_group, account_status, created_by)
+            VALUES('{$d['fullname']}', '{$d['username']}', '$pw', '{$d['role']}', '{$d['college']}', '{$d['department']}', '{$d['campus']}', '{$d['email']}', '{$d['signatory_title']}', $hasExtensionServices, '{$d['routing_group']}', '{$d['account_status']}', $cb)");
+    }
+
+    function update($d) {
+        foreach($d as $k => $v) $d[$k] = $this->conn->real_escape_string($v);
+
+        $id = intval($d['user_id'] ?? $d['id'] ?? 0);
+        $pw = !empty($d['password']) ? ", password='".md5($d['password'])."'" : "";
+        $hasExtensionServices = intval($d['has_extension_services'] ?? 0);
+
+        return $this->conn->query("UPDATE users SET
+                fullname='{$d['fullname']}',
+                username='{$d['username']}',
+                role='{$d['role']}',
+                college='{$d['college']}',
+                department='{$d['department']}',
+                campus='{$d['campus']}',
+                email='{$d['email']}',
+                signatory_title='{$d['signatory_title']}',
+                has_extension_services=$hasExtensionServices,
+                routing_group='{$d['routing_group']}',
+                account_status='{$d['account_status']}'
+                $pw
+            WHERE id=$id");
+    }
+
+    function delete($id) {
+        $id = intval($id);
+        return $this->conn->query("DELETE FROM users WHERE id=$id AND username<>'admin'");
+    }
+}
+?>

@@ -650,6 +650,7 @@ CREATE TABLE `quarterly_reports` (
   `noted_by_extension_director_title` varchar(180) DEFAULT NULL,
   `approved_by` varchar(180) DEFAULT NULL,
   `approved_title` varchar(180) DEFAULT NULL,
+  `created_by` int(11) DEFAULT NULL,
   `submission_status` enum('Draft','Submitted','Under Review','Recalled','For Revision','Not Approved','Department Coordinator Approved','School Coordinator Approved','Campus Director Approved','Extension Office Approved','VP ORIES Approved','Approved','Archived') DEFAULT 'Draft',
   `submitted_by` int(11) DEFAULT NULL,
   `submitted_at` datetime DEFAULT NULL,
@@ -697,6 +698,7 @@ CREATE TABLE `users` (
   `campus` varchar(150) DEFAULT NULL,
   `email` varchar(150) DEFAULT NULL,
   `signatory_title` varchar(150) DEFAULT NULL,
+  `has_extension_services` tinyint(1) DEFAULT 0,
   `routing_group` varchar(180) DEFAULT NULL,
   `signature_image` varchar(255) DEFAULT NULL,
   `account_status` varchar(50) DEFAULT 'Active',
@@ -708,12 +710,12 @@ CREATE TABLE `users` (
 -- Dumping data for table `users`
 --
 
-INSERT INTO `users` (`id`, `fullname`, `username`, `password`, `role`, `college`, `department`, `campus`, `email`, `signatory_title`, `routing_group`, `signature_image`, `account_status`, `created_by`, `created_at`) VALUES
-(1, 'System Super Admin', 'admin', '0192023a7bbd73250516f069df18b500', 'Super Admin', 'Extension Office', 'Administration', 'Main Campus', NULL, 'Extension Office', 'MAIN', NULL, 'Active', NULL, '2026-05-19 08:03:58'),
-(2, 'Department Extension Coordinator', 'staff', 'de9bf5643eabf80f4a56fda3bbb84483', 'Department Coordinator', 'School of Engineering', 'Information Technology', 'Main Campus', NULL, 'Extension Coordinator', 'SOE-MAIN', NULL, 'Active', NULL, '2026-05-19 08:03:58'),
-(3, 'School Extension Coordinator', 'schoolcoord', '9a60ffa59cbe650509dd3fd5afa5dfd4', 'School Coordinator', 'School of Engineering', 'Information Technology', 'Main Campus', NULL, 'School Coordinator', 'SOE-MAIN', NULL, 'Active', NULL, '2026-05-19 08:03:58'),
-(4, 'Campus Director / Dean', 'campusdirector', '6f02716d5ae7cddf7e2c590a241107b2', 'Campus Director', 'School of Engineering', 'Administration', 'Main Campus', NULL, 'Campus Director/Dean', 'SOE-MAIN', NULL, 'Active', NULL, '2026-05-19 08:03:58'),
-(5, 'VP ORIES', 'vpories', '8fc83302c44fcb68b793ceca1d376996', 'VP ORIES', 'Administration', 'Administration', 'Main Campus', NULL, 'VP ORIES', 'MAIN', NULL, 'Active', NULL, '2026-05-19 08:03:58');
+INSERT INTO `users` (`id`, `fullname`, `username`, `password`, `role`, `college`, `department`, `campus`, `email`, `signatory_title`, `has_extension_services`, `routing_group`, `signature_image`, `account_status`, `created_by`, `created_at`) VALUES
+(1, 'System Super Admin', 'admin', '0192023a7bbd73250516f069df18b500', 'Super Admin', 'Extension Office', 'Administration', 'Main Campus', NULL, 'Extension Office', 0, 'MAIN', NULL, 'Active', NULL, '2026-05-19 08:03:58'),
+(2, 'Department Extension Coordinator', 'staff', 'de9bf5643eabf80f4a56fda3bbb84483', 'Department Coordinator', 'School of Engineering', 'Information Technology', 'Main Campus', NULL, 'Extension Coordinator', 0, 'SOE-MAIN', NULL, 'Active', NULL, '2026-05-19 08:03:58'),
+(3, 'School Extension Coordinator', 'schoolcoord', '9a60ffa59cbe650509dd3fd5afa5dfd4', 'School Coordinator', 'School of Engineering', 'Information Technology', 'Main Campus', NULL, 'School Coordinator', 0, 'SOE-MAIN', NULL, 'Active', NULL, '2026-05-19 08:03:58'),
+(4, 'Campus Director / Dean', 'campusdirector', '6f02716d5ae7cddf7e2c590a241107b2', 'Campus Director', 'School of Engineering', 'Administration', 'Main Campus', NULL, 'Campus Director/Dean', 0, 'SOE-MAIN', NULL, 'Active', NULL, '2026-05-19 08:03:58'),
+(5, 'VP ORIES', 'vpories', '8fc83302c44fcb68b793ceca1d376996', 'VP ORIES', 'Administration', 'Administration', 'Main Campus', NULL, 'VP ORIES', 0, 'MAIN', NULL, 'Active', NULL, '2026-05-19 08:03:58');
 
 --
 -- Indexes for dumped tables

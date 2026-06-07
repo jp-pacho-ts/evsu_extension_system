@@ -1,6 +1,5 @@
 <?php include "app/views/layouts/header.php"; ?>
 
-<h2 class="fw-bold">📜 Activity Logs</h2>
 <p class="text-muted">Filter and export system activity logs.</p>
 
 <?php

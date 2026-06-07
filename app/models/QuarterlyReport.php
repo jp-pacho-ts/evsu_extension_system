@@ -1,11 +1,19 @@
 <?php
 class QuarterlyReport {
     private $conn;
-    public function __construct($db){ $this->conn=$db; $this->ensureApprovalStatusEnums(); }
+    public function __construct($db){ $this->conn=$db; $this->ensureApprovalStatusEnums(); $this->ensureOwnershipColumn(); }
 
     private function ensureApprovalStatusEnums(){
         @$this->conn->query("ALTER TABLE quarterly_reports MODIFY submission_status enum('Draft','Submitted','Under Review','Recalled','For Revision','Not Approved','Department Coordinator Approved','School Coordinator Approved','Campus Director Approved','Extension Office Approved','VP ORIES Approved','Approved','Archived') DEFAULT 'Draft'");
         @$this->conn->query("ALTER TABLE document_approvals MODIFY status enum('Pending','Approved','Not Approved','For Revision','Recalled') DEFAULT 'Pending'");
+    }
+
+    private function ensureOwnershipColumn(){
+        $rs = @$this->conn->query("SHOW COLUMNS FROM quarterly_reports LIKE 'created_by'");
+        if($rs && $rs->num_rows > 0) return true;
+        @$this->conn->query("ALTER TABLE quarterly_reports ADD COLUMN created_by int(11) DEFAULT NULL AFTER approved_title");
+        $rs = @$this->conn->query("SHOW COLUMNS FROM quarterly_reports LIKE 'created_by'");
+        return $rs && $rs->num_rows > 0;
     }
 
     public function all(){
@@ -86,7 +94,7 @@ class QuarterlyReport {
         $uid=isset($_SESSION['user_id'])?intval($_SESSION['user_id']):0;
         $submittedBy=$status=='Submitted'?$uid:"NULL";
         $submittedAt=$status=='Submitted'?"NOW()":"NULL";
-        $ok=$this->conn->query("INSERT INTO quarterly_reports(college,campus,department,period_covered,control_no,revision_no,report_date,prepared_by,prepared_title,noted_by_dean,noted_by_dean_title,noted_by_extension_director,noted_by_extension_director_title,approved_by,approved_title,submission_status,submitted_by,submitted_at) VALUES('{$data['college']}','{$data['campus']}','{$data['department']}','{$data['period_covered']}','{$data['control_no']}','{$data['revision_no']}','{$data['report_date']}','{$data['prepared_by']}','{$data['prepared_title']}','{$data['noted_by_dean']}','{$data['noted_by_dean_title']}','{$data['noted_by_extension_director']}','{$data['noted_by_extension_director_title']}','{$data['approved_by']}','{$data['approved_title']}','$status',$submittedBy,$submittedAt)");
+        $ok=$this->conn->query("INSERT INTO quarterly_reports(college,campus,department,period_covered,control_no,revision_no,report_date,prepared_by,prepared_title,noted_by_dean,noted_by_dean_title,noted_by_extension_director,noted_by_extension_director_title,approved_by,approved_title,created_by,submission_status,submitted_by,submitted_at) VALUES('{$data['college']}','{$data['campus']}','{$data['department']}','{$data['period_covered']}','{$data['control_no']}','{$data['revision_no']}','{$data['report_date']}','{$data['prepared_by']}','{$data['prepared_title']}','{$data['noted_by_dean']}','{$data['noted_by_dean_title']}','{$data['noted_by_extension_director']}','{$data['noted_by_extension_director_title']}','{$data['approved_by']}','{$data['approved_title']}',$uid,'$status',$submittedBy,$submittedAt)");
         if(!$ok) return false;
         $id=$this->conn->insert_id;
         $this->saveItems($id,$items);
