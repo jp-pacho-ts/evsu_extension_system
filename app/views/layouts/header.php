@@ -56,7 +56,11 @@ if($initials === '') $initials = 'GE';
 <head>
     <title><?= htmlspecialchars($pageTitle) ?> - <?= htmlspecialchars(systemName()) ?></title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
     <link rel="stylesheet" href="public/assets/css/style.css?v=<?= filemtime('public/assets/css/style.css') ?>">
 </head>
@@ -126,88 +130,104 @@ if($initials === '') $initials = 'GE';
 
     <main class="content">
         <header class="page-header no-print">
-            <div>
+            <div class="header-title">
                 <p class="header-kicker">Eastern Visayas State University</p>
                 <h1><?= htmlspecialchars($pageTitle) ?></h1>
             </div>
             <div class="header-account">
-                <div class="account-avatar" aria-hidden="true"><?= htmlspecialchars($initials) ?></div>
-                <div>
-                    <p><?= htmlspecialchars($fullName) ?></p>
-                    <span><?= htmlspecialchars($displayRole) ?></span>
-                </div>
-                <?php if(isset($_SESSION['user_id'])): ?>
-                    <div class="notification-dropdown-wrap">
-                        <button class="header-notification" type="button" data-notification-dropdown-toggle aria-expanded="false" aria-controls="notificationDropdown" aria-label="Notifications" title="Notifications">
-                            <span class="header-notification-icon" aria-hidden="true">!</span>
-                            <?php if($notificationCount > 0): ?>
-                                <span class="header-notification-badge"><?= $notificationCount ?></span>
-                            <?php endif; ?>
-                        </button>
-
-                        <div class="notification-dropdown-panel" id="notificationDropdown" data-notification-dropdown hidden>
-                            <div class="notification-dropdown-header">
-                                <div>
-                                    <h5>Notifications</h5>
-                                    <p><?= $notificationCount ?> unread notification<?= $notificationCount == 1 ? '' : 's' ?></p>
-                                </div>
-                                <button type="button" class="btn-close" data-notification-dropdown-close aria-label="Close"></button>
-                            </div>
-
-                            <div class="notification-dropdown-body">
-                                <?php if(!empty($headerNotifications)): ?>
-                                    <div class="notification-list">
-                                        <?php foreach($headerNotifications as $n): ?>
-                                            <?php $isUnread = intval($n['is_read'] ?? 0) === 0; ?>
-                                            <div class="notification-item<?= $isUnread ? ' unread' : '' ?>">
-                                                <div class="d-flex justify-content-between align-items-start gap-2">
-                                                    <h6><?= htmlspecialchars($n['title'] ?? '') ?></h6>
-                                                    <?php if($isUnread): ?><span class="badge bg-danger">New</span><?php endif; ?>
-                                                </div>
-                                                <p><?= htmlspecialchars($n['message'] ?? '') ?></p>
-                                                <small><?= htmlspecialchars($n['created_at'] ?? '') ?></small>
-                                                <div class="notification-actions">
-                                                    <?php if(trim((string)($n['link'] ?? '')) !== ''): ?>
-                                                        <form method="post" action="index.php?page=notification_action">
-                                                            <input type="hidden" name="notification_action" value="open">
-                                                            <input type="hidden" name="notification_id" value="<?= intval($n['id'] ?? 0) ?>">
-                                                            <input type="hidden" name="redirect" value="<?= htmlspecialchars($currentUrl) ?>">
-                                                            <button class="btn btn-sm btn-outline-primary" type="submit">Open</button>
-                                                        </form>
-                                                    <?php endif; ?>
-                                                    <?php if($isUnread): ?>
-                                                        <form method="post" action="index.php?page=notification_action">
-                                                            <input type="hidden" name="notification_action" value="read">
-                                                            <input type="hidden" name="notification_id" value="<?= intval($n['id'] ?? 0) ?>">
-                                                            <input type="hidden" name="redirect" value="<?= htmlspecialchars($currentUrl) ?>">
-                                                            <button class="btn btn-sm btn-outline-secondary" type="submit">Read</button>
-                                                        </form>
-                                                    <?php endif; ?>
-                                                    <form method="post" action="index.php?page=notification_action">
-                                                        <input type="hidden" name="notification_action" value="delete">
-                                                        <input type="hidden" name="notification_id" value="<?= intval($n['id'] ?? 0) ?>">
-                                                        <input type="hidden" name="redirect" value="<?= htmlspecialchars($currentUrl) ?>">
-                                                        <button class="btn btn-sm btn-outline-danger" type="submit" onclick="return confirm('Delete this notification?')">Delete</button>
-                                                    </form>
-                                                </div>
-                                            </div>
-                                        <?php endforeach; ?>
-                                    </div>
-                                <?php else: ?>
-                                    <p class="notification-empty">No notifications yet.</p>
+                <div class="header-actions">
+                    <?php if(isset($_SESSION['user_id'])): ?>
+                        <div class="notification-dropdown-wrap">
+                            <button class="header-notification" type="button" data-notification-dropdown-toggle aria-expanded="false" aria-controls="notificationDropdown" aria-label="Notifications" title="Notifications">
+                                <i class="bi bi-bell-fill header-notification-icon" aria-hidden="true"></i>
+                                <?php if($notificationCount > 0): ?>
+                                    <span class="header-notification-badge"><?= $notificationCount ?></span>
                                 <?php endif; ?>
-                            </div>
+                            </button>
 
-                            <div class="notification-dropdown-footer">
-                                <form method="post" action="index.php?page=notification_action">
-                                    <input type="hidden" name="notification_action" value="mark_all">
-                                    <input type="hidden" name="redirect" value="<?= htmlspecialchars($currentUrl) ?>">
-                                    <button class="btn btn-outline-secondary btn-sm" type="submit" <?= empty($headerNotifications) ? 'disabled' : '' ?>>Mark All Read</button>
-                                </form>
+                            <div class="notification-dropdown-panel" id="notificationDropdown" data-notification-dropdown hidden>
+                                <div class="notification-dropdown-header">
+                                    <div>
+                                        <h5>Notifications</h5>
+                                        <p><?= $notificationCount ?> unread notification<?= $notificationCount == 1 ? '' : 's' ?></p>
+                                    </div>
+                                    <button type="button" class="btn-close" data-notification-dropdown-close aria-label="Close"></button>
+                                </div>
+
+                                <div class="notification-dropdown-body">
+                                    <?php if(!empty($headerNotifications)): ?>
+                                        <div class="notification-list">
+                                            <?php foreach($headerNotifications as $n): ?>
+                                                <?php $isUnread = intval($n['is_read'] ?? 0) === 0; ?>
+                                                <div class="notification-item<?= $isUnread ? ' unread' : '' ?>">
+                                                    <div class="d-flex justify-content-between align-items-start gap-2">
+                                                        <h6><?= htmlspecialchars($n['title'] ?? '') ?></h6>
+                                                        <?php if($isUnread): ?><span class="badge bg-danger">New</span><?php endif; ?>
+                                                    </div>
+                                                    <p><?= htmlspecialchars($n['message'] ?? '') ?></p>
+                                                    <small><?= htmlspecialchars($n['created_at'] ?? '') ?></small>
+                                                    <div class="notification-actions">
+                                                        <?php if(trim((string)($n['link'] ?? '')) !== ''): ?>
+                                                            <form method="post" action="index.php?page=notification_action">
+                                                                <input type="hidden" name="notification_action" value="open">
+                                                                <input type="hidden" name="notification_id" value="<?= intval($n['id'] ?? 0) ?>">
+                                                                <input type="hidden" name="redirect" value="<?= htmlspecialchars($currentUrl) ?>">
+                                                                <button class="btn btn-sm btn-outline-primary" type="submit">Open</button>
+                                                            </form>
+                                                        <?php endif; ?>
+                                                        <?php if($isUnread): ?>
+                                                            <form method="post" action="index.php?page=notification_action">
+                                                                <input type="hidden" name="notification_action" value="read">
+                                                                <input type="hidden" name="notification_id" value="<?= intval($n['id'] ?? 0) ?>">
+                                                                <input type="hidden" name="redirect" value="<?= htmlspecialchars($currentUrl) ?>">
+                                                                <button class="btn btn-sm btn-outline-secondary" type="submit">Read</button>
+                                                            </form>
+                                                        <?php endif; ?>
+                                                        <form method="post" action="index.php?page=notification_action">
+                                                            <input type="hidden" name="notification_action" value="delete">
+                                                            <input type="hidden" name="notification_id" value="<?= intval($n['id'] ?? 0) ?>">
+                                                            <input type="hidden" name="redirect" value="<?= htmlspecialchars($currentUrl) ?>">
+                                                            <button class="btn btn-sm btn-outline-danger" type="submit" onclick="return confirm('Delete this notification?')">Delete</button>
+                                                        </form>
+                                                    </div>
+                                                </div>
+                                            <?php endforeach; ?>
+                                        </div>
+                                    <?php else: ?>
+                                        <p class="notification-empty">No notifications yet.</p>
+                                    <?php endif; ?>
+                                </div>
+
+                                <div class="notification-dropdown-footer">
+                                    <form method="post" action="index.php?page=notification_action">
+                                        <input type="hidden" name="notification_action" value="mark_all">
+                                        <input type="hidden" name="redirect" value="<?= htmlspecialchars($currentUrl) ?>">
+                                        <button class="btn btn-outline-secondary btn-sm" type="submit" <?= empty($headerNotifications) ? 'disabled' : '' ?>>Mark All Read</button>
+                                    </form>
+                                </div>
                             </div>
                         </div>
+                    <?php endif; ?>
+                    <div class="account-dropdown">
+                        <button class="header-user" type="button" id="accountMenuButton" data-account-dropdown-toggle aria-expanded="false" aria-controls="accountMenu">
+                            <div class="account-avatar" aria-hidden="true"><?= htmlspecialchars($initials) ?></div>
+                            <div class="header-user-meta">
+                                <p><?= htmlspecialchars($fullName) ?></p>
+                            </div>
+                            <i class="bi bi-chevron-down account-caret" aria-hidden="true"></i>
+                        </button>
+                        <div class="account-menu" id="accountMenu" data-account-dropdown hidden>
+                            <div class="account-menu-header">
+                                <strong><?= htmlspecialchars($fullName) ?></strong>
+                                <span><?= htmlspecialchars($displayRole) ?></span>
+                            </div>
+                            <div class="account-menu-divider"></div>
+                            <a class="account-menu-item" href="index.php?page=logout">
+                                <i class="bi bi-box-arrow-right" aria-hidden="true"></i>
+                                <span>Sign out</span>
+                            </a>
+                        </div>
                     </div>
-                <?php endif; ?>
-                <a class="header-logout" href="index.php?page=logout">Logout</a>
+                </div>
             </div>
         </header>
