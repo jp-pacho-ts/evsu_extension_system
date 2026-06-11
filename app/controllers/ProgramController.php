@@ -9,7 +9,7 @@ class ProgramController {
     }
 
     public function index() {
-        requireRole(['Department Coordinator','Extension Staff','Super Admin','Admin']);
+        requireAccess(canAccessPrograms());
 
         $message = '';
         if($_SERVER['REQUEST_METHOD'] === 'POST') {

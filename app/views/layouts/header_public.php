@@ -1,7 +1,11 @@
+<?php
+$appName = function_exists('systemName') ? systemName() : 'GESESP-DA';
+$appSubtitle = function_exists('systemSubtitle') ? systemSubtitle() : 'Extension Services Data Analytics';
+?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <title>EVSU Extension Services Platform</title>
+    <title><?= htmlspecialchars($appName) ?></title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="public/assets/css/style.css">
@@ -10,10 +14,10 @@
 <div class="app-shell">
     <aside class="sidebar no-print" aria-label="Public navigation">
         <div class="sidebar-brand">
-            <div class="brand-mark" aria-hidden="true">ES</div>
+            <div class="brand-mark" aria-hidden="true">GE</div>
             <div>
-                <h1>EVSU Extension</h1>
-                <p>Services Platform</p>
+                <h1><?= htmlspecialchars($appName) ?></h1>
+                <p><?= htmlspecialchars($appSubtitle) ?></p>
             </div>
         </div>
 

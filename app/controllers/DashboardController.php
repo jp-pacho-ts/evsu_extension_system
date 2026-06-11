@@ -12,7 +12,7 @@ class DashboardController {
     }
 
     function index() {
-        requireRole(['Super Admin','Admin','School Coordinator','Campus Director','Extension Director','VP ORIES','Reviewer']);
+        requireRole(['Super Admin','Admin','Extension Director','Reviewer']);
 
         $projects = $this->projectModel->all();
         $statusCounts = [];
@@ -26,20 +26,7 @@ class DashboardController {
         }
 
         $total = count($projects);
-        $quarterlyPhaseRows = $this->quarterlyReportModel->phaseSummary();
-        $quarterlyPhaseCounts = [];
-
-        foreach(range(1, 7) as $phase) {
-            $quarterlyPhaseCounts[(string)$phase] = 0;
-        }
-
-        foreach($quarterlyPhaseRows as $row) {
-            $phase = trim((string)($row['project_phase'] ?? ''));
-            if(preg_match('/\d+/', $phase, $matches)) $phase = $matches[0];
-            if($phase !== '') $quarterlyPhaseCounts[$phase] = intval($row['total'] ?? 0);
-        }
-
-        $quarterlyPhaseItems = $this->quarterlyReportModel->latestPhaseItems(8);
+        $quarterlyReportItems = $this->quarterlyReportModel->latestPhaseItems(8);
 
         include 'app/views/dashboard/index.php';
     }

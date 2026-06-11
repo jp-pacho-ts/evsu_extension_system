@@ -1,1 +1,1 @@
-<?php require_once 'app/models/Project.php'; class MapController{private $m;function __construct($db){$this->m=new Project($db);}function index(){requireRole(['Super Admin','Admin','Campus Director','Extension Director','VP ORIES']);$projects=$this->m->all();include 'app/views/map/index.php';}} ?>
+<?php require_once 'app/models/Project.php'; class MapController{private $m;function __construct($db){$this->m=new Project($db);}function index(){requireAccess(canAccessGisMap());$projects=$this->m->all();include 'app/views/map/index.php';}} ?>

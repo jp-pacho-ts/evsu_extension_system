@@ -18,7 +18,7 @@ class ProjectController {
     }
 
     public function index() {
-        requireRole(['Department Coordinator','Extension Staff','Super Admin','Admin']);
+        requireAccess(canAccessProjects());
 
         $message = "";
 
@@ -46,7 +46,7 @@ class ProjectController {
     }
 
     public function create() {
-        requireRole(['Department Coordinator','Extension Staff','Super Admin','Admin']);
+        requireAccess(canAccessProjects());
 
         $message = "";
 

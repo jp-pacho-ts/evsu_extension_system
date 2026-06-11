@@ -14,7 +14,7 @@ class MonitoringController {
     }
 
     public function index() {
-        requireRole(['Department Coordinator','Extension Staff','School Coordinator','Campus Director','VP ORIES','Super Admin','Admin']);
+        requireAccess(canAccessMonitoringRecords());
 
         if($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['project_id'])) {
             $this->model->create($_POST);
@@ -34,7 +34,7 @@ class MonitoringController {
     }
 
     public function updateStatus() {
-        requireRole(['Department Coordinator','Extension Staff','School Coordinator','Campus Director','VP ORIES','Super Admin','Admin']);
+        requireAccess(canAccessMonitoringRecords());
 
         $id = intval($_POST['monitoring_id'] ?? 0);
         $status = $_POST['status'] ?? 'On-going';

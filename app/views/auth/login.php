@@ -1,1 +1,51 @@
-<!DOCTYPE html><html><head><title>Login - EVSU Extension Platform</title><meta name='viewport' content='width=device-width, initial-scale=1'><link href='https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css' rel='stylesheet'></head><body class='bg-primary-subtle'><div class='container'><div class='row justify-content-center align-items-center' style='min-height:100vh;'><div class='col-md-5'><div class='card shadow border-0 rounded-4'><div class='card-body p-4'><h3 class='fw-bold text-center'>EVSU Extension Services Platform</h3><p class='text-center text-muted'>Final MVC Monitoring Version</p><?php if($error): ?><div class='alert alert-danger'><?= $error ?></div><?php endif; ?><form method='POST'><label>Username</label><input type='text' name='username' class='form-control mb-3' required><label>Password</label><input type='password' name='password' class='form-control mb-3' required><button class='btn btn-primary w-100'>Login</button></form><div class='alert alert-info mt-3 small'>admin/admin123<br>reviewer/review123<br>staff/staff123</div></div></div></div></div></div></body></html>
+<?php
+$appName = function_exists('systemName') ? systemName() : 'GESESP-DA';
+$appSubtitle = function_exists('systemSubtitle') ? systemSubtitle() : 'Extension Services Data Analytics';
+?>
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Login - <?= htmlspecialchars($appName) ?></title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="public/assets/css/style.css?v=<?= filemtime('public/assets/css/style.css') ?>">
+</head>
+<body class="login-page">
+<div class="login-shell">
+    <div class="login-card">
+        <div class="login-brand">
+            <div class="login-mark" aria-hidden="true">GE</div>
+            <div>
+                <h1><?= htmlspecialchars($appName) ?></h1>
+                <p><?= htmlspecialchars($appSubtitle) ?></p>
+            </div>
+        </div>
+
+        <div class="login-heading">
+            <h2>Sign in</h2>
+            <p>Use your GESESP-DA account to continue.</p>
+        </div>
+
+        <?php if($error): ?>
+            <div class="login-error"><?= htmlspecialchars($error) ?></div>
+        <?php endif; ?>
+
+        <form method="POST" class="login-form">
+            <label for="login-username">Username</label>
+            <input id="login-username" type="text" name="username" required>
+
+            <label for="login-password">Password</label>
+            <input id="login-password" type="password" name="password" required>
+
+            <button type="submit">Login</button>
+        </form>
+
+        <div class="login-demo">
+            admin1/admin123<br>
+            staff/staff123<br>
+            schoolcoord/school123
+        </div>
+    </div>
+</div>
+</body>
+</html>

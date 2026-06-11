@@ -9,7 +9,7 @@ class ApprovalCenterController {
     }
 
     public function index() {
-        requireLogin();
+        requireAccess(canAccessApprovalCenter());
 
         $currentUser = [
             'id' => $_SESSION['user_id'],
@@ -17,9 +17,7 @@ class ApprovalCenterController {
         ];
 
         $reports = [];
-        if(hasRole(['Department Coordinator','School Coordinator','Campus Director','VP ORIES'])) {
-            $reports = $this->reportModel->approvalQueueForUser($currentUser);
-        }
+        $reports = $this->reportModel->approvalQueueForUser($currentUser);
 
         include "app/views/approval_center/index.php";
     }

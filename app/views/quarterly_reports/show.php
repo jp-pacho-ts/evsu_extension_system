@@ -98,7 +98,8 @@
     <?php if(($canManageQuarterlyReports ?? false) && in_array(($report['submission_status'] ?? 'Draft'), ['Draft','Recalled','For Revision','Not Approved'])): ?><a href="index.php?page=edit_quarterly_report&id=<?= $report['id'] ?>" class="btn btn-success">Edit Report</a><?php endif; ?>
     <?php if(($canManageQuarterlyReports ?? false) && in_array(($report['submission_status'] ?? 'Draft'), ['Submitted','Under Review'])): ?><a href="index.php?page=recall_quarterly_report&id=<?= $report['id'] ?>" onclick="return confirm('Recall this submission for correction?')" class="btn btn-warning">Recall Submission</a><?php endif; ?>
     <?php if(($canManageQuarterlyReports ?? false) && (in_array(($report['submission_status'] ?? 'Draft'), ['Draft','Recalled','For Revision','Not Approved']) || hasRole(['Super Admin']))): ?><a href="index.php?page=delete_quarterly_report&id=<?= $report['id'] ?>" onclick="return confirm('Delete this report?')" class="btn btn-danger">Delete</a><?php endif; ?>
-    <a href="index.php?page=quarterly_reports" class="btn btn-secondary">Back to Quarterly Report</a> <a href="index.php?page=dashboard" class="btn btn-outline-primary">Back to Dashboard</a>
+    <a href="index.php?page=quarterly_reports" class="btn btn-secondary">Back to Quarterly Report</a>
+    <?php if(hasRole(['Super Admin','Admin','Extension Director','Reviewer'])): ?><a href="index.php?page=dashboard" class="btn btn-outline-primary">Back to Dashboard</a><?php endif; ?>
 </div>
 
 <?php

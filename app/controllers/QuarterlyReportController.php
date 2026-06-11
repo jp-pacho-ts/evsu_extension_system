@@ -87,7 +87,7 @@ class QuarterlyReportController {
     }
 
     public function index() {
-        requireRole($this->listRoles);
+        requireAccess(canAccessQuarterlyReports());
 
         $message = '';
         $canManageQuarterlyReports = $this->canManageReports();
@@ -141,7 +141,7 @@ class QuarterlyReportController {
     }
 
     public function show() {
-        requireRole($this->showRoles);
+        requireAccess(canAccessQuarterlyReports() || hasRole(['Extension Director','Reviewer']));
 
         $id = intval($_GET['id']);
         $report = $this->model->find($id);

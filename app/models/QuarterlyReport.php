@@ -88,6 +88,81 @@ class QuarterlyReport {
         }
     }
 
+    private function reportLink($id) {
+        return 'index.php?page=view_quarterly_report&id='.intval($id);
+    }
+
+    private function reportLabel($report) {
+        $period = trim((string)($report['period_covered'] ?? ''));
+        $department = trim((string)($report['department'] ?? ''));
+        $parts = [];
+        if($period !== '') $parts[] = $period;
+        if($department !== '') $parts[] = $department;
+        return $parts ? implode(' - ', $parts) : 'Quarterly report #'.intval($report['id'] ?? 0);
+    }
+
+    private function projectPhaseLabel($id) {
+        $id = intval($id);
+        $result = $this->conn->query("SELECT DISTINCT project_phase FROM quarterly_report_items WHERE report_id=$id AND TRIM(COALESCE(project_phase,''))<>''");
+        $phases = [];
+        if($result) {
+            while($row = $result->fetch_assoc()) {
+                $phase = trim((string)($row['project_phase'] ?? ''));
+                if($phase === '') continue;
+                $number = preg_replace('/[^0-9]/', '', $phase);
+                $key = $number !== '' ? intval($number) : $phase;
+                $label = stripos($phase, 'phase') === 0 ? $phase : 'Phase '.$phase;
+                $phases[$key] = $label;
+            }
+        }
+
+        if(empty($phases)) return 'No phase indicated';
+        ksort($phases);
+        return count($phases) === 1 ? reset($phases) : implode(', ', array_values($phases));
+    }
+
+    private function approvalRoleLabel($role) {
+        $role = function_exists('normalizeRole') ? normalizeRole($role) : strtolower(trim((string)$role));
+        if($role == 'department coordinator') return 'Department Coordinator';
+        if($role == 'school coordinator') return 'School Coordinator';
+        if($role == 'campus director') return 'Campus Director / Dean';
+        if($role == 'vp ories') return 'VP ORIES';
+        return ucwords($role);
+    }
+
+    private function nextApproverRoleForStatus($status) {
+        if($status == 'Department Coordinator Approved') return 'School Coordinator';
+        if($status == 'School Coordinator Approved') return 'Campus Director';
+        if($status == 'Campus Director Approved') return 'VP ORIES';
+        return '';
+    }
+
+    private function notifyReportOwners($report, $title, $message, $excludeUserId = 0) {
+        $ids = [];
+        foreach(['created_by','submitted_by'] as $key) {
+            $uid = intval($report[$key] ?? 0);
+            if($uid > 0 && $uid !== intval($excludeUserId)) $ids[$uid] = true;
+        }
+
+        foreach(array_keys($ids) as $uid) {
+            notifyUser($this->conn, $uid, $title, $message, $this->reportLink($report['id'] ?? 0));
+        }
+    }
+
+    private function notifyInitialApprovalNeeded($id, $title) {
+        $report = $this->find($id);
+        if(!$report) return;
+        $label = $this->reportLabel($report);
+        $phase = $this->projectPhaseLabel($id);
+        notifyUsersByRole(
+            $this->conn,
+            ['Department Coordinator'],
+            $title,
+            "$label is waiting for Department Coordinator approval. Current project phase: $phase.",
+            'index.php?page=approval_center'
+        );
+    }
+
     public function create($data,$items){
         foreach($data as $k=>$v) if(!is_array($v)) $data[$k]=$this->esc($v);
         $status=($data['save_action']??'draft')=='submit'?'Submitted':'Draft';
@@ -101,7 +176,7 @@ class QuarterlyReport {
         if($status=='Submitted') {
             $this->resetApprovalRoute($id);
             $this->addApprovalHistory($id, 'Submitted', 'Draft/Recalled/For Revision/Not Approved', 'Submitted', 'Report submitted for approval.');
-            notifyUsersByRole($this->conn,['Department Coordinator'],'New Quarterly Report Submitted','A quarterly report is waiting for your approval.','index.php?page=approval_center');
+            $this->notifyInitialApprovalNeeded($id, 'New Quarterly Report Submitted');
         }
         return $id;
     }
@@ -118,7 +193,8 @@ class QuarterlyReport {
         $this->saveItems($id,$items);
         if($status=='Submitted'){
             $this->resetApprovalRoute($id);
-            notifyUsersByRole($this->conn,['Department Coordinator'],'Quarterly Report Resubmitted','A corrected quarterly report is waiting for your approval.','index.php?page=approvals');
+            $this->addApprovalHistory($id, 'Resubmitted', $report['submission_status'] ?? 'Draft', 'Submitted', 'Report resubmitted for approval.');
+            $this->notifyInitialApprovalNeeded($id, 'Quarterly Report Resubmitted');
         }
         return true;
     }
@@ -129,7 +205,7 @@ class QuarterlyReport {
         $this->conn->query("UPDATE quarterly_reports SET submission_status='Submitted',submitted_by=$uid,submitted_at=NOW(),recalled_by=NULL,recalled_at=NULL WHERE id=$id");
         $this->resetApprovalRoute($id);
         $this->addApprovalHistory($id, 'Submitted', 'Draft/Recalled/For Revision/Not Approved', 'Submitted', 'Report submitted for approval.');
-        notifyUsersByRole($this->conn,['Department Coordinator'],'New Quarterly Report Submitted','A quarterly report is waiting for your approval.','index.php?page=approval_center');
+        $this->notifyInitialApprovalNeeded($id, 'New Quarterly Report Submitted');
         return true;
     }
 
@@ -138,7 +214,7 @@ class QuarterlyReport {
         if(!$report || !$this->canRecall($report)) return false;
         $this->conn->query("UPDATE quarterly_reports SET submission_status='Recalled',recalled_by=$uid,recalled_at=NOW(),approval_remarks='Submission recalled by coordinator for correction.' WHERE id=$id");
         $this->conn->query("DELETE FROM document_approvals WHERE document_type='quarterly_report' AND document_id=$id");
-        notifyUsersByRole($this->conn,['School Coordinator'],'Quarterly Report Recalled','A submitted quarterly report was recalled by the coordinator.','index.php?page=approvals');
+        notifyUsersByRole($this->conn,['School Coordinator'],'Quarterly Report Recalled','A submitted quarterly report was recalled by the coordinator.','index.php?page=approval_center');
         return true;
     }
 
@@ -195,9 +271,29 @@ class QuarterlyReport {
         $this->conn->query("UPDATE quarterly_reports SET submission_status='$next', approval_remarks='$remarks' WHERE id=$id");
         $this->addApprovalHistory($id, 'Approved', $required, $next, $remarks);
 
-        if($next == 'Department Coordinator Approved') notifyUsersByRole($this->conn, ['School Coordinator'], 'Report Ready for Approval', 'A report is ready for School Coordinator approval.', 'index.php?page=approval_center');
-        if($next == 'School Coordinator Approved') notifyUsersByRole($this->conn, ['Campus Director'], 'Report Ready for Approval', 'A report is ready for Campus Director/Dean approval.', 'index.php?page=approval_center');
-        if($next == 'Campus Director Approved') notifyUsersByRole($this->conn, ['VP ORIES'], 'Report Ready for Final Approval', 'A report is ready for VP ORIES final approval.', 'index.php?page=approval_center');
+        $label = $this->reportLabel($report);
+        $phase = $this->projectPhaseLabel($id);
+        $roleLabel = $this->approvalRoleLabel($role);
+        $nextRole = $this->nextApproverRoleForStatus($next);
+        $nextText = $nextRole ? ' It is now waiting for '.$this->approvalRoleLabel($nextRole).' approval.' : ' Final status: Approved.';
+        $remarksText = $remarks !== '' ? ' Remarks: '.$remarks : '';
+
+        $this->notifyReportOwners(
+            $report,
+            $next == 'Approved' ? 'Quarterly Report Fully Approved' : 'Quarterly Report Approved',
+            "$label was approved by $approverName ($roleLabel). Current status: $next. Current project phase: $phase.$nextText$remarksText",
+            $uid
+        );
+
+        if($nextRole) {
+            notifyUsersByRole(
+                $this->conn,
+                [$nextRole],
+                'Report Ready for Approval',
+                "$label was approved by $roleLabel and is now ready for your approval. Current project phase: $phase. Current status: $next.",
+                'index.php?page=approval_center'
+            );
+        }
 
         return true;
     }
@@ -227,6 +323,17 @@ class QuarterlyReport {
 
         $this->conn->query("UPDATE quarterly_reports SET submission_status='Not Approved', approval_remarks='$remarks' WHERE id=$id");
         $this->addApprovalHistory($id, 'Not Approved', $old, 'Not Approved', $remarks);
+
+        $label = $this->reportLabel($report);
+        $phase = $this->projectPhaseLabel($id);
+        $roleLabel = $this->approvalRoleLabel($role);
+        $remarksText = $remarks !== '' ? ' Remarks: '.$remarks : '';
+        $this->notifyReportOwners(
+            $report,
+            'Quarterly Report Not Approved',
+            "$label was not approved by $approverName ($roleLabel). Current project phase: $phase.$remarksText",
+            $uid
+        );
         return true;
     }
     public function returnForRevision($id, $user, $remarks=''){

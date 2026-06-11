@@ -90,6 +90,10 @@ switch ($page) {
         require_once "app/controllers/NotificationController.php";
         (new NotificationController($db))->index();
         break;
+    case 'notification_action':
+        require_once "app/controllers/NotificationController.php";
+        (new NotificationController($db))->action();
+        break;
 
     case 'logs':
         require_once "app/controllers/LogController.php";
