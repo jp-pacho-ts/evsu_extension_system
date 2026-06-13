@@ -4,6 +4,21 @@ class Project {
     public function __construct($db) { $this->conn = $db; }
 
     public function all() {
+        return $this->queryProjects();
+    }
+
+    public function countAll() {
+        $result = $this->conn->query("SELECT COUNT(*) AS total FROM projects");
+        return $result ? intval($result->fetch_assoc()['total'] ?? 0) : 0;
+    }
+
+    public function paginated($limit, $offset) {
+        $limit = max(1, intval($limit));
+        $offset = max(0, intval($offset));
+        return $this->queryProjects(" LIMIT $limit OFFSET $offset");
+    }
+
+    private function queryProjects($limitSql = '') {
         $sql = "SELECT projects.*, programs.program_title,
                 (SELECT COUNT(*) FROM monitoring_entries WHERE monitoring_entries.project_id = projects.id) AS monitoring_count,
                 (SELECT me.activity_title FROM monitoring_entries me WHERE me.project_id = projects.id ORDER BY me.monitoring_date DESC, me.id DESC LIMIT 1) AS latest_monitoring_title,
@@ -11,10 +26,10 @@ class Project {
                 (SELECT COALESCE(NULLIF(me.activity_description,''), NULLIF(me.remarks,''), '') FROM monitoring_entries me WHERE me.project_id = projects.id ORDER BY me.monitoring_date DESC, me.id DESC LIMIT 1) AS latest_update
                 FROM projects
                 JOIN programs ON programs.id = projects.program_id
-                ORDER BY projects.created_at DESC";
+                ORDER BY projects.created_at DESC".$limitSql;
         $result = $this->conn->query($sql);
         $data = [];
-        while($row = $result->fetch_assoc()) {
+        if($result) while($row = $result->fetch_assoc()) {
             $row['esfi'] = computeESFI($row['monitoring_count'], $row['participants']);
             $row['esfi_label'] = esfiInterpretation($row['esfi']);
             $data[] = $row;

@@ -1,4 +1,8 @@
-<?php include 'app/views/layouts/header.php'; ?>
+<?php
+$printAll = $printAll ?? false;
+$autoPrint = $printAll && (string)($_GET['autoprint'] ?? '') === '1';
+include 'app/views/layouts/header.php';
+?>
 
 <style>
 .report-print-header {
@@ -19,14 +23,53 @@
     text-align: right;
 }
 
+.prescriptive-report {
+    max-width: 100%;
+}
+
+.prescriptive-report .table-responsive {
+    overflow-x: auto;
+}
+
+.prescriptive-print-table {
+    width: 100%;
+    table-layout: fixed;
+    font-size: 11px;
+    line-height: 1.35;
+}
+
+.prescriptive-print-table th,
+.prescriptive-print-table td {
+    white-space: normal;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+    vertical-align: top !important;
+}
+
+.prescriptive-print-table th:nth-child(1) { width: 16%; }
+.prescriptive-print-table th:nth-child(2) { width: 15%; }
+.prescriptive-print-table th:nth-child(3) { width: 15%; }
+.prescriptive-print-table th:nth-child(4) { width: 22%; }
+.prescriptive-print-table th:nth-child(5) { width: 8%; }
+.prescriptive-print-table th:nth-child(6) { width: 10%; }
+.prescriptive-print-table th:nth-child(7) { width: 14%; }
+
 @media print {
     @page {
-        size: landscape;
-        margin: 10mm;
+        size: A4 landscape;
+        margin: 8mm;
     }
 
+    html,
     body {
+        width: 100% !important;
         background: #ffffff !important;
+    }
+
+    .content {
+        width: 100% !important;
+        margin-left: 0 !important;
+        padding: 0 !important;
     }
 
     .prescriptive-report {
@@ -44,10 +87,11 @@
 
     .prescriptive-print-table {
         width: 100% !important;
+        min-width: 0 !important;
         table-layout: fixed;
         border-collapse: collapse;
-        font-size: 8.5px;
-        line-height: 1.25;
+        font-size: 8px;
+        line-height: 1.2;
     }
 
     .report-print-header {
@@ -64,37 +108,51 @@
     }
 
     .prescriptive-print-table thead th {
-        font-size: 9.5px;
+        font-size: 8.5px;
         font-weight: 700;
+    }
+
+    .prescriptive-print-table thead {
+        display: table-header-group;
+    }
+
+    .prescriptive-print-table tr {
+        break-inside: avoid;
+        page-break-inside: avoid;
     }
 
     .prescriptive-print-table th,
     .prescriptive-print-table td {
-        padding: 3px 4px !important;
+        padding: 2px 3px !important;
         white-space: normal !important;
         overflow-wrap: anywhere;
         word-break: break-word;
         vertical-align: top !important;
     }
 
-    .prescriptive-print-table th:nth-child(1) { width: 17%; }
-    .prescriptive-print-table th:nth-child(2) { width: 13%; }
+    .prescriptive-print-table th:nth-child(1) { width: 16%; }
+    .prescriptive-print-table th:nth-child(2) { width: 15%; }
     .prescriptive-print-table th:nth-child(3) { width: 15%; }
     .prescriptive-print-table th:nth-child(4) { width: 22%; }
     .prescriptive-print-table th:nth-child(5) { width: 8%; }
     .prescriptive-print-table th:nth-child(6) { width: 10%; }
-    .prescriptive-print-table th:nth-child(7) { width: 15%; }
+    .prescriptive-print-table th:nth-child(7) { width: 14%; }
 }
 </style>
 
 <div class="card p-4 prescriptive-report">
     <div class="d-flex justify-content-end no-print mb-3">
-        <button onclick="window.print()" class="btn btn-primary">Print / Save as PDF</button>
+        <?php if($printAll): ?>
+            <a href="index.php?page=report" class="btn btn-outline-secondary me-2">Back to Paginated View</a>
+            <button onclick="window.print()" class="btn btn-primary">Print / Save as PDF</button>
+        <?php else: ?>
+            <a href="index.php?page=report&print=1&autoprint=1" class="btn btn-primary">Print / Save as PDF</a>
+        <?php endif; ?>
     </div>
 
     <div class="report-print-header">
         <h2 class="report-print-title">Prescriptive Report - <?= htmlspecialchars(function_exists('systemName') ? systemName() : 'GESESP-DA') ?></h2>
-        <p class="report-print-meta">Generated on <?= date('F d, Y') ?></p>
+        <p class="report-print-meta">Generated on <?= date('F d, Y') ?><?= $printAll ? ' | All records' : '' ?></p>
     </div>
 
     <div class="table-responsive">
@@ -129,6 +187,19 @@
             </tbody>
         </table>
     </div>
+    <?php if(!$printAll): ?>
+        <?= renderPagination($pagination ?? [], 'prescriptive report records') ?>
+    <?php endif; ?>
 </div>
+
+<?php if($autoPrint): ?>
+<script>
+window.addEventListener('load', function() {
+    setTimeout(function() {
+        window.print();
+    }, 150);
+});
+</script>
+<?php endif; ?>
 
 <?php include 'app/views/layouts/footer.php'; ?>

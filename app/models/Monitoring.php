@@ -11,6 +11,21 @@ class Monitoring {
     }
 
     public function all() {
+        return $this->queryMonitoring();
+    }
+
+    public function countAll() {
+        $result = $this->conn->query("SELECT COUNT(*) AS total FROM monitoring_entries");
+        return $result ? intval($result->fetch_assoc()['total'] ?? 0) : 0;
+    }
+
+    public function paginated($limit, $offset) {
+        $limit = max(1, intval($limit));
+        $offset = max(0, intval($offset));
+        return $this->queryMonitoring(" LIMIT $limit OFFSET $offset");
+    }
+
+    private function queryMonitoring($limitSql = '') {
         $sql = "SELECT
                     me.*,
                     pg.program_title,
@@ -29,7 +44,7 @@ class Monitoring {
                 FROM monitoring_entries me
                 LEFT JOIN projects pr ON pr.id = me.project_id
                 LEFT JOIN programs pg ON pg.id = pr.program_id
-                ORDER BY me.monitoring_date DESC, me.id DESC";
+                ORDER BY me.monitoring_date DESC, me.id DESC".$limitSql;
 
         $result = $this->conn->query($sql);
         $data = [];
@@ -80,6 +95,65 @@ class Monitoring {
         return $ok;
     }
 
+    public function update($id, $data) {
+        $id = intval($id);
+        if($id <= 0) return false;
+
+        $oldEntry = $this->conn->query("SELECT project_id FROM monitoring_entries WHERE id=$id")->fetch_assoc();
+        if(!$oldEntry) return false;
+
+        $project_id = intval($data['project_id'] ?? 0);
+        $activity_title = $this->esc($data['activity_title'] ?? '');
+        $monitoring_date = $this->esc($data['monitoring_date'] ?? '');
+        $source_of_fund = $this->esc($data['source_of_fund'] ?? '');
+        $terminal_report_date = $this->esc($data['terminal_report_date'] ?? '');
+        $activity_description = $this->esc($data['activity_description'] ?? '');
+        $remarks = $this->esc($data['remarks'] ?? '');
+        $status = $this->esc($data['status'] ?? 'On-going');
+
+        $monitoringDateSql = $monitoring_date ? "'$monitoring_date'" : "NULL";
+        $terminalDateSql = $terminal_report_date ? "'$terminal_report_date'" : "NULL";
+
+        $ok = $this->conn->query("UPDATE monitoring_entries SET
+                project_id=$project_id,
+                activity_title='$activity_title',
+                monitoring_date=$monitoringDateSql,
+                source_of_fund='$source_of_fund',
+                status='$status',
+                terminal_report_date=$terminalDateSql,
+                activity_description='$activity_description',
+                remarks='$remarks'
+            WHERE id=$id");
+
+        if($ok) {
+            if($project_id > 0) {
+                $this->conn->query("UPDATE projects SET status='$status' WHERE id=$project_id");
+            }
+
+            $oldProjectId = intval($oldEntry['project_id'] ?? 0);
+            if($oldProjectId > 0 && $oldProjectId !== $project_id) {
+                $this->syncProjectStatus($oldProjectId);
+            }
+        }
+
+        return $ok;
+    }
+
+    public function delete($id) {
+        $id = intval($id);
+        if($id <= 0) return false;
+
+        $entry = $this->conn->query("SELECT project_id FROM monitoring_entries WHERE id=$id")->fetch_assoc();
+        if(!$entry) return false;
+
+        $ok = $this->conn->query("DELETE FROM monitoring_entries WHERE id=$id");
+        if($ok) {
+            $this->syncProjectStatus(intval($entry['project_id'] ?? 0));
+        }
+
+        return $ok;
+    }
+
     public function updateStatus($id, $status) {
         $id = intval($id);
         $status = $this->esc($status);
@@ -93,6 +167,17 @@ class Monitoring {
         }
 
         return $ok;
+    }
+
+    private function syncProjectStatus($project_id) {
+        $project_id = intval($project_id);
+        if($project_id <= 0) return;
+
+        $latest = $this->conn->query("SELECT status FROM monitoring_entries WHERE project_id=$project_id ORDER BY monitoring_date DESC, id DESC LIMIT 1")->fetch_assoc();
+        if($latest && trim((string)($latest['status'] ?? '')) !== '') {
+            $status = $this->esc($latest['status']);
+            $this->conn->query("UPDATE projects SET status='$status' WHERE id=$project_id");
+        }
     }
 }
 ?>

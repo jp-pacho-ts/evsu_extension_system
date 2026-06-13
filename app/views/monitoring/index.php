@@ -1,69 +1,23 @@
 <?php include "app/views/layouts/header.php"; ?>
+<?php $monitoringRedirect = 'index.php?' . http_build_query($_GET); ?>
 
-<p class="text-muted">Add monitoring entries and update project status.</p>
+<div class="d-flex flex-wrap justify-content-between align-items-start gap-3 mb-3">
+    <p class="text-muted mb-0">Add monitoring entries and update project status.</p>
+    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addMonitoringModal">Add Monitoring Entry</button>
+</div>
+
 <?php if(isset($_GET['saved'])): ?>
     <div class="alert alert-success">Monitoring entry saved successfully.</div>
 <?php endif; ?>
-
-<div class="card p-4 mb-4">
-    <form method="POST">
-        <div class="row g-3">
-            <div class="col-md-4">
-                <label>Project</label>
-                <select name="project_id" class="form-select" required>
-                    <?php foreach(($projects ?? []) as $p): ?>
-                        <option value="<?= $p['id'] ?>"><?= htmlspecialchars($p['project_title']) ?></option>
-                    <?php endforeach; ?>
-                </select>
-            </div>
-
-            <div class="col-md-4">
-                <label>Additional Monitoring Title</label>
-                <input name="activity_title" class="form-control" required>
-            </div>
-
-            <div class="col-md-4">
-                <label>Monitoring Date</label>
-                <input type="date" name="monitoring_date" class="form-control">
-            </div>
-
-            <div class="col-md-4">
-                <label>Source of Fund</label>
-                <input name="source_of_fund" class="form-control">
-            </div>
-
-            <div class="col-md-4">
-                <label>Project Status</label>
-                <select name="status" class="form-select">
-                    <option>On-going</option>
-                    <option>Completed</option>
-                    <option>Inactive</option>
-                    <option>Expired</option>
-                    <option>Terminated</option>
-                </select>
-            </div>
-
-            <div class="col-md-4">
-                <label>Terminal Report Date</label>
-                <input type="date" name="terminal_report_date" class="form-control">
-            </div>
-
-            <div class="col-md-6">
-                <label>Recent Update</label>
-                <textarea name="activity_description" class="form-control"></textarea>
-            </div>
-
-            <div class="col-md-6">
-                <label>Remarks</label>
-                <textarea name="remarks" class="form-control"></textarea>
-            </div>
-
-            <div class="col-12">
-                <button class="btn btn-primary">Save Monitoring Entry</button>
-            </div>
-        </div>
-    </form>
-</div>
+<?php if(isset($_GET['updated'])): ?>
+    <div class="alert alert-success">Monitoring entry updated successfully.</div>
+<?php endif; ?>
+<?php if(isset($_GET['deleted'])): ?>
+    <div class="alert alert-success">Monitoring entry deleted successfully.</div>
+<?php endif; ?>
+<?php if(isset($_GET['error'])): ?>
+    <div class="alert alert-danger">Unable to complete the monitoring action.</div>
+<?php endif; ?>
 
 <div class="card p-3">
     <div class="d-flex justify-content-between align-items-center mb-3">
@@ -71,27 +25,18 @@
         <button onclick="window.print()" class="btn btn-outline-primary no-print">Print / Save as PDF</button>
     </div>
 
-    <div class="table-responsive">
-        <table class="table table-bordered table-hover align-middle">
+    <div class="table-responsive monitoring-table-wrap">
+        <table class="table table-bordered table-hover align-middle monitoring-records-table">
             <thead class="table-light">
                 <tr>
                     <th>Program</th>
-                    <th>Project</th>
-                    <th>Barangay</th>
-                    <th>Municipality</th>
-                    <th>Province</th>
-                    <th>SDG</th>
-                    <th>Partner</th>
-                    <th>Clientele</th>
-                    <th>Leader</th>
-                    <th>Assistant</th>
-                    <th>Members</th>
-                    <th>Additional Monitoring</th>
-                    <th>Monitoring Date</th>
-                    <th>Project Status</th>
-                    <th>Recent Update</th>
-                    <th>S.O.</th>
-                    <th>Remarks</th>
+                    <th>Project & Location</th>
+                    <th>Classification</th>
+                    <th>Team</th>
+                    <th>Monitoring</th>
+                    <th>Status</th>
+                    <th>Update & Remarks</th>
+                    <th class="no-print">Actions</th>
                 </tr>
             </thead>
             <tbody>
@@ -107,22 +52,33 @@
                         ][$currentStatus] ?? 'secondary';
                     ?>
                     <tr>
-                        <td><?= htmlspecialchars($m['program_title'] ?? '') ?></td>
-                        <td><?= htmlspecialchars($m['project_title'] ?? '') ?></td>
-                        <td><?= htmlspecialchars($m['barangay'] ?? '') ?></td>
-                        <td><?= htmlspecialchars($m['municipality'] ?? '') ?></td>
-                        <td><?= htmlspecialchars($m['province'] ?? '') ?></td>
-                        <td><?= htmlspecialchars($m['sdg'] ?? '') ?></td>
-                        <td><?= htmlspecialchars($m['partner'] ?? $m['partners'] ?? '') ?></td>
-                        <td><?= htmlspecialchars($m['type_of_clientele'] ?? $m['clientele_type'] ?? '') ?></td>
-                        <td><?= htmlspecialchars($m['leader'] ?? '') ?></td>
-                        <td><?= htmlspecialchars($m['assistant'] ?? $m['assistant_leader'] ?? '') ?></td>
-                        <td><?= htmlspecialchars($m['members'] ?? '') ?></td>
-                        <td><?= htmlspecialchars($m['activity_title'] ?? '') ?></td>
-                        <td><?= htmlspecialchars($m['monitoring_date'] ?? '') ?></td>
+                        <td>
+                            <strong class="monitoring-cell-title"><?= htmlspecialchars($m['program_title'] ?? '') ?></strong>
+                            <span class="monitoring-meta">S.O. <?= htmlspecialchars($m['special_order_no'] ?? '') ?></span>
+                        </td>
+                        <td>
+                            <strong class="monitoring-cell-title"><?= htmlspecialchars($m['project_title'] ?? '') ?></strong>
+                            <span class="monitoring-meta"><?= htmlspecialchars($m['barangay'] ?? '') ?></span>
+                            <span class="monitoring-meta"><?= htmlspecialchars(trim(($m['municipality'] ?? '').', '.($m['province'] ?? ''), ', ')) ?></span>
+                        </td>
+                        <td>
+                            <strong class="monitoring-cell-title"><?= htmlspecialchars($m['sdg'] ?? '') ?></strong>
+                            <span class="monitoring-meta">Partner: <?= htmlspecialchars($m['partner'] ?? $m['partners'] ?? '') ?></span>
+                            <span class="monitoring-meta">Clientele: <?= htmlspecialchars($m['type_of_clientele'] ?? $m['clientele_type'] ?? '') ?></span>
+                        </td>
+                        <td>
+                            <strong class="monitoring-cell-title"><?= htmlspecialchars($m['leader'] ?? '') ?></strong>
+                            <span class="monitoring-meta">Assistant: <?= htmlspecialchars($m['assistant'] ?? $m['assistant_leader'] ?? '') ?></span>
+                            <span class="monitoring-meta">Members: <?= htmlspecialchars($m['members'] ?? '') ?></span>
+                        </td>
+                        <td>
+                            <strong class="monitoring-cell-title"><?= htmlspecialchars($m['activity_title'] ?? '') ?></strong>
+                            <span class="monitoring-meta"><?= htmlspecialchars($m['monitoring_date'] ?? '') ?></span>
+                        </td>
                         <td>
                             <form method="POST" action="index.php?page=update_monitoring_status" style="margin:0;">
                                 <input type="hidden" name="monitoring_id" value="<?= htmlspecialchars($m['id']) ?>">
+                                <input type="hidden" name="redirect" value="<?= htmlspecialchars($monitoringRedirect) ?>">
                                 <select name="status" onchange="this.form.submit()" class="form-select form-select-sm status-dropdown-inline">
                                     <?php foreach(['On-going','Completed','Inactive','Expired','Terminated'] as $opt): ?>
                                         <option value="<?= $opt ?>" <?= $currentStatus == $opt ? 'selected' : '' ?>><?= $opt ?></option>
@@ -130,33 +86,186 @@
                                 </select>
                             </form>
                         </td>
-                        <td><?= htmlspecialchars($m['activity_description'] ?? '') ?></td>
-                        <td><?= htmlspecialchars($m['special_order_no'] ?? '') ?></td>
-                        <td><?= htmlspecialchars($m['remarks'] ?? '') ?></td>
+                        <td>
+                            <strong class="monitoring-cell-title"><?= htmlspecialchars($m['activity_description'] ?? '') ?></strong>
+                            <span class="monitoring-meta">Remarks: <?= htmlspecialchars($m['remarks'] ?? '') ?></span>
+                        </td>
+                        <td class="monitoring-actions no-print">
+                            <button class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#editMonitoringModal<?= intval($m['id']) ?>">Edit</button>
+                            <button class="btn btn-sm btn-outline-danger" data-bs-toggle="modal" data-bs-target="#deleteMonitoringModal<?= intval($m['id']) ?>">Delete</button>
+                        </td>
                     </tr>
                 <?php endforeach; ?>
 
                 <?php if(empty($monitoring ?? $records ?? [])): ?>
-                    <tr><td colspan="17" class="text-muted text-center">No monitoring records yet.</td></tr>
+                    <tr><td colspan="8" class="text-muted text-center">No monitoring records yet.</td></tr>
                 <?php endif; ?>
             </tbody>
         </table>
     </div>
+    <?= renderPagination($pagination ?? [], 'monitoring records') ?>
 </div>
 
+<div class="modal fade" id="addMonitoringModal" tabindex="-1" aria-labelledby="addMonitoringModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+        <div class="modal-content">
+            <form method="POST">
+                <input type="hidden" name="form_action" value="create">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="addMonitoringModalLabel">Add Monitoring Entry</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <?php $monitoringForm = []; include "app/views/monitoring/_form.php"; ?>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button class="btn btn-primary">Save Monitoring Entry</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<?php foreach(($monitoring ?? $records ?? []) as $m): ?>
+    <?php $monitoringId = intval($m['id']); ?>
+    <div class="modal fade" id="editMonitoringModal<?= $monitoringId ?>" tabindex="-1" aria-labelledby="editMonitoringModalLabel<?= $monitoringId ?>" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-scrollable">
+            <div class="modal-content">
+                <form method="POST">
+                    <input type="hidden" name="form_action" value="update">
+                    <input type="hidden" name="monitoring_id" value="<?= $monitoringId ?>">
+                    <input type="hidden" name="redirect" value="<?= htmlspecialchars($monitoringRedirect) ?>">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="editMonitoringModalLabel<?= $monitoringId ?>">Edit Monitoring Entry</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <?php $monitoringForm = $m; include "app/views/monitoring/_form.php"; ?>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button class="btn btn-primary">Update Monitoring Entry</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="deleteMonitoringModal<?= $monitoringId ?>" tabindex="-1" aria-labelledby="deleteMonitoringModalLabel<?= $monitoringId ?>" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <form method="POST">
+                    <input type="hidden" name="form_action" value="delete">
+                    <input type="hidden" name="monitoring_id" value="<?= $monitoringId ?>">
+                    <input type="hidden" name="redirect" value="<?= htmlspecialchars($monitoringRedirect) ?>">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="deleteMonitoringModalLabel<?= $monitoringId ?>">Delete Monitoring Entry</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <p class="mb-1">Delete this monitoring entry?</p>
+                        <p class="fw-bold mb-1"><?= htmlspecialchars($m['activity_title'] ?? '') ?></p>
+                        <p class="text-muted small mb-0"><?= htmlspecialchars($m['project_title'] ?? '') ?></p>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button class="btn btn-danger">Delete Monitoring Entry</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+<?php endforeach; ?>
+
 <style>
-.status-dropdown-inline {
-    min-width: 115px;
+.monitoring-table-wrap {
+    overflow-x: visible;
+}
+
+.monitoring-records-table {
+    width: 100%;
+    table-layout: fixed;
     font-size: 12px;
+    line-height: 1.35;
+}
+
+.monitoring-records-table th,
+.monitoring-records-table td {
+    padding: 8px 7px !important;
+    white-space: normal;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+    vertical-align: top !important;
+}
+
+.monitoring-records-table th:nth-child(1) { width: 12%; }
+.monitoring-records-table th:nth-child(2) { width: 17%; }
+.monitoring-records-table th:nth-child(3) { width: 14%; }
+.monitoring-records-table th:nth-child(4) { width: 15%; }
+.monitoring-records-table th:nth-child(5) { width: 13%; }
+.monitoring-records-table th:nth-child(6) { width: 9%; }
+.monitoring-records-table th:nth-child(7) { width: 12%; }
+.monitoring-records-table th:nth-child(8) { width: 8%; }
+
+.monitoring-cell-title {
+    display: block;
+    line-height: 1.25;
+}
+
+.monitoring-meta {
+    display: block;
+    margin-top: 3px;
+    color: #6b7280;
+    font-size: 11px;
+    line-height: 1.3;
+}
+
+.status-dropdown-inline {
+    width: 100%;
+    min-width: 0;
+    font-size: 11px;
     font-weight: 700;
-    border-radius: 8px;
-    padding: 3px 6px;
+    border-radius: 6px;
+    padding: 3px 4px;
+}
+
+.monitoring-actions {
+    display: grid;
+    gap: 5px;
+}
+
+.monitoring-actions .btn {
+    width: 100%;
+    padding: 3px 4px;
+    font-size: 11px;
+    line-height: 1.2;
+}
+
+@media (max-width: 900px) {
+    .monitoring-records-table {
+        font-size: 10px;
+    }
+
+    .monitoring-records-table th,
+    .monitoring-records-table td {
+        padding: 6px 5px !important;
+    }
+
+    .monitoring-meta {
+        font-size: 10px;
+    }
+
+    .monitoring-actions .btn,
+    .status-dropdown-inline {
+        font-size: 10px;
+    }
 }
 @media print {
     .sidebar, .no-print, form button { display:none !important; }
     .content { margin:0 !important; padding:10px !important; }
     body { background:white !important; }
-    table { font-size:10px; }
+    .monitoring-records-table { font-size:9px; }
 }
 </style>
 

@@ -17,6 +17,20 @@ class Program {
         return $data;
     }
 
+    public function countAll() {
+        $result = $this->conn->query("SELECT COUNT(*) AS total FROM programs");
+        return $result ? intval($result->fetch_assoc()['total'] ?? 0) : 0;
+    }
+
+    public function paginated($limit, $offset) {
+        $limit = max(1, intval($limit));
+        $offset = max(0, intval($offset));
+        $result = $this->conn->query("SELECT * FROM programs ORDER BY created_at DESC LIMIT $limit OFFSET $offset");
+        $data = [];
+        if($result) while($row = $result->fetch_assoc()) $data[] = $row;
+        return $data;
+    }
+
     public function create($data) {
         $programTitle = $this->esc($data['program_title'] ?? '');
         $projectCost = $this->esc($data['project_cost'] ?? '0');

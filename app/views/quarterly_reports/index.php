@@ -128,6 +128,7 @@ $defaultPreparedTitle = $profile['signatory_title'] ?? 'Extension Coordinator';
             </tbody>
         </table>
     </div>
+    <?= renderPagination($pagination ?? [], 'quarterly reports') ?>
 </div>
 
 <?php include "app/views/layouts/footer.php"; ?>

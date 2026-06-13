@@ -109,7 +109,8 @@ class QuarterlyReportController {
         }
 
         $currentUserProfile = $this->currentUserProfile();
-        $reports = $this->model->all();
+        $pagination = paginationParams($this->model->countAll(), 10);
+        $reports = $this->model->paginated($pagination['per_page'], $pagination['offset']);
         $reportPermissions = [];
         foreach($reports as $report) {
             $reportPermissions[$report['id']] = $this->canManageReports($report);

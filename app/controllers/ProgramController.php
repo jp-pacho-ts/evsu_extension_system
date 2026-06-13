@@ -26,7 +26,8 @@ class ProgramController {
             }
         }
 
-        $programs = $this->model->all();
+        $pagination = paginationParams($this->model->countAll(), 10);
+        $programs = $this->model->paginated($pagination['per_page'], $pagination['offset']);
         include 'app/views/programs/index.php';
     }
 }

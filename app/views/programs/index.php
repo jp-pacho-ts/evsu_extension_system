@@ -45,6 +45,7 @@
             </tbody>
         </table>
     </div>
+    <?= renderPagination($pagination ?? [], 'programs') ?>
 </div>
 
 <div class="modal fade" id="addProgramModal" tabindex="-1" aria-labelledby="addProgramModalLabel" aria-hidden="true">

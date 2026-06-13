@@ -37,7 +37,8 @@ class ProjectController {
         }
 
         $programs = $this->programModel->all();
-        $projects = $this->model->all();
+        $pagination = paginationParams($this->model->countAll(), 10);
+        $projects = $this->model->paginated($pagination['per_page'], $pagination['offset']);
 
         $locations = $this->locationModel->all();
         $barangayLocations = $this->barangayLocationModel->all();
@@ -55,7 +56,8 @@ class ProjectController {
         }
 
         $programs = $this->programModel->all();
-        $projects = $this->model->all();
+        $pagination = paginationParams($this->model->countAll(), 10);
+        $projects = $this->model->paginated($pagination['per_page'], $pagination['offset']);
 
         $locations = $this->locationModel->all();
         $barangayLocations = $this->barangayLocationModel->all();

@@ -44,6 +44,85 @@ function decisionSupport($s){
     ][$s] ?? "Review project status.";
 }
 
+function paginationParams($total, $perPage = 10, $pageKey = 'p') {
+    $total = max(0, intval($total));
+    $perPage = max(1, intval($perPage));
+    $totalPages = max(1, (int)ceil($total / $perPage));
+    $page = intval($_GET[$pageKey] ?? 1);
+    $page = max(1, min($page, $totalPages));
+    $offset = ($page - 1) * $perPage;
+
+    return [
+        'total' => $total,
+        'per_page' => $perPage,
+        'current_page' => $page,
+        'total_pages' => $totalPages,
+        'offset' => $offset,
+        'from' => $total > 0 ? $offset + 1 : 0,
+        'to' => min($total, $offset + $perPage),
+        'page_key' => $pageKey
+    ];
+}
+
+function paginationLink($targetPage, $pageKey = 'p') {
+    $params = $_GET;
+    $params[$pageKey] = max(1, intval($targetPage));
+    return 'index.php?' . http_build_query($params);
+}
+
+function renderPagination($pagination, $label = 'records') {
+    if(empty($pagination)) return '';
+
+    $total = intval($pagination['total'] ?? 0);
+    $current = intval($pagination['current_page'] ?? 1);
+    $totalPages = intval($pagination['total_pages'] ?? 1);
+    $pageKey = $pagination['page_key'] ?? 'p';
+    $from = intval($pagination['from'] ?? 0);
+    $to = intval($pagination['to'] ?? 0);
+    $start = max(1, $current - 2);
+    $end = min($totalPages, $current + 2);
+
+    ob_start();
+    ?>
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mt-3 no-print">
+        <p class="text-muted small mb-0">
+            Showing <?= $from ?>-<?= $to ?> of <?= $total ?> <?= htmlspecialchars($label) ?>
+        </p>
+
+        <?php if($totalPages > 1): ?>
+            <nav aria-label="<?= htmlspecialchars(ucfirst($label)) ?> pagination">
+                <ul class="pagination pagination-sm mb-0">
+                    <li class="page-item <?= $current <= 1 ? 'disabled' : '' ?>">
+                        <a class="page-link" href="<?= htmlspecialchars(paginationLink($current - 1, $pageKey)) ?>">Previous</a>
+                    </li>
+
+                    <?php if($start > 1): ?>
+                        <li class="page-item"><a class="page-link" href="<?= htmlspecialchars(paginationLink(1, $pageKey)) ?>">1</a></li>
+                        <?php if($start > 2): ?><li class="page-item disabled"><span class="page-link">...</span></li><?php endif; ?>
+                    <?php endif; ?>
+
+                    <?php for($i = $start; $i <= $end; $i++): ?>
+                        <li class="page-item <?= $i === $current ? 'active' : '' ?>">
+                            <a class="page-link" href="<?= htmlspecialchars(paginationLink($i, $pageKey)) ?>"><?= $i ?></a>
+                        </li>
+                    <?php endfor; ?>
+
+                    <?php if($end < $totalPages): ?>
+                        <?php if($end < $totalPages - 1): ?><li class="page-item disabled"><span class="page-link">...</span></li><?php endif; ?>
+                        <li class="page-item"><a class="page-link" href="<?= htmlspecialchars(paginationLink($totalPages, $pageKey)) ?>"><?= $totalPages ?></a></li>
+                    <?php endif; ?>
+
+                    <li class="page-item <?= $current >= $totalPages ? 'disabled' : '' ?>">
+                        <a class="page-link" href="<?= htmlspecialchars(paginationLink($current + 1, $pageKey)) ?>">Next</a>
+                    </li>
+                </ul>
+            </nav>
+        <?php endif; ?>
+    </div>
+    <?php
+    return ob_get_clean();
+}
+
 function userHasExtensionServices($db, $userId = null) {
     if(!$db) return false;
     ensureUserExtensionServicesColumn($db);

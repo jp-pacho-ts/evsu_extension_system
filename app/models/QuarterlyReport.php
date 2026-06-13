@@ -21,6 +21,18 @@ class QuarterlyReport {
         $d=[]; if($r) while($x=$r->fetch_assoc()) $d[]=$x; return $d;
     }
 
+    public function countAll(){
+        $r=$this->conn->query("SELECT COUNT(*) AS total FROM quarterly_reports");
+        return $r ? intval($r->fetch_assoc()['total'] ?? 0) : 0;
+    }
+
+    public function paginated($limit,$offset){
+        $limit=max(1,intval($limit));
+        $offset=max(0,intval($offset));
+        $r=$this->conn->query("SELECT qr.*,u.fullname submitted_by_name FROM quarterly_reports qr LEFT JOIN users u ON u.id=qr.submitted_by ORDER BY qr.created_at DESC LIMIT $limit OFFSET $offset");
+        $d=[]; if($r) while($x=$r->fetch_assoc()) $d[]=$x; return $d;
+    }
+
     public function find($id){
         $id=intval($id);
         return $this->conn->query("SELECT qr.*,u.fullname submitted_by_name FROM quarterly_reports qr LEFT JOIN users u ON u.id=qr.submitted_by WHERE qr.id=$id")->fetch_assoc();
