@@ -1,6 +1,25 @@
 <?php
 $projectForm = $projectForm ?? [];
 $statusOptions = ['On-going','Completed','Terminated','Inactive','Expired'];
+$sdgOptions = [
+    'SDG 1: No Poverty',
+    'SDG 2: Zero Hunger',
+    'SDG 3: Good Health and Well-being',
+    'SDG 4: Quality Education',
+    'SDG 5: Gender Equality',
+    'SDG 6: Clean Water and Sanitation',
+    'SDG 7: Affordable and Clean Energy',
+    'SDG 8: Decent Work and Economic Growth',
+    'SDG 9: Industry, Innovation and Infrastructure',
+    'SDG 10: Reduced Inequalities',
+    'SDG 11: Sustainable Cities and Communities',
+    'SDG 12: Responsible Consumption and Production',
+    'SDG 13: Climate Action',
+    'SDG 14: Life Below Water',
+    'SDG 15: Life on Land',
+    'SDG 16: Peace, Justice and Strong Institutions',
+    'SDG 17: Partnerships for the Goals',
+];
 $provinceList = [];
 foreach(($locations ?? []) as $loc) {
     if(!empty($loc['province'])) $provinceList[$loc['province']] = true;
@@ -8,6 +27,7 @@ foreach(($locations ?? []) as $loc) {
 $selectedProvince = $projectForm['province'] ?? '';
 $selectedMunicipality = $projectForm['municipality'] ?? '';
 $selectedBarangay = $projectForm['barangay'] ?? '';
+$selectedSdg = $projectForm['sdg'] ?? '';
 ?>
 <div class="row g-3">
     <div class="col-md-4">
@@ -28,7 +48,15 @@ $selectedBarangay = $projectForm['barangay'] ?? '';
 
     <div class="col-md-4">
         <label>SDG</label>
-        <input name="sdg" class="form-control" value="<?= htmlspecialchars($projectForm['sdg'] ?? '') ?>" placeholder="e.g., SDG 4: Quality Education">
+        <select name="sdg" class="form-select">
+            <option value="">Select SDG</option>
+            <?php if($selectedSdg && !in_array($selectedSdg, $sdgOptions, true)): ?>
+                <option value="<?= htmlspecialchars($selectedSdg) ?>" selected><?= htmlspecialchars($selectedSdg) ?></option>
+            <?php endif; ?>
+            <?php foreach($sdgOptions as $sdg): ?>
+                <option value="<?= htmlspecialchars($sdg) ?>" <?= $selectedSdg === $sdg ? 'selected' : '' ?>><?= htmlspecialchars($sdg) ?></option>
+            <?php endforeach; ?>
+        </select>
     </div>
 
     <div class="col-md-4">
