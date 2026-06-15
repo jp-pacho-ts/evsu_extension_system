@@ -1,8 +1,12 @@
 <?php
 $monitoringForm = $monitoringForm ?? [];
 $statusOptions = ['On-going','Completed','Inactive','Expired','Terminated'];
+$campusOptions = ['External','EVSU Main Campus','EVSU Burauen Campus','EVSU Carigara Campus','EVSU Dulag Campus','EVSU Ormoc Campus','EVSU Tanauan Campus'];
+$schoolOptions = ['SAS','SED','SAME','SOT','SAAD','SOE'];
 $selectedProjectId = intval($monitoringForm['project_id'] ?? 0);
 $selectedStatus = $monitoringForm['status'] ?? 'On-going';
+$selectedCampus = $monitoringForm['evsu_campus'] ?? '';
+$selectedSchool = $monitoringForm['campus_school'] ?? '';
 ?>
 
 <div class="row g-3">
@@ -32,6 +36,30 @@ $selectedStatus = $monitoringForm['status'] ?? 'On-going';
     <div class="col-md-4">
         <label>Source of Fund</label>
         <input name="source_of_fund" class="form-control" value="<?= htmlspecialchars($monitoringForm['source_of_fund'] ?? '') ?>">
+    </div>
+
+    <div class="col-md-4">
+        <label>EVSU Campus / External</label>
+        <select name="evsu_campus" class="form-select">
+            <option value="">Select Campus / External</option>
+            <?php foreach($campusOptions as $campus): ?>
+                <option value="<?= htmlspecialchars($campus) ?>" <?= $selectedCampus === $campus ? 'selected' : '' ?>>
+                    <?= htmlspecialchars($campus) ?>
+                </option>
+            <?php endforeach; ?>
+        </select>
+    </div>
+
+    <div class="col-md-4">
+        <label>School in Campus</label>
+        <select name="campus_school" class="form-select">
+            <option value="">Select School</option>
+            <?php foreach($schoolOptions as $school): ?>
+                <option value="<?= htmlspecialchars($school) ?>" <?= $selectedSchool === $school ? 'selected' : '' ?>>
+                    <?= htmlspecialchars($school) ?>
+                </option>
+            <?php endforeach; ?>
+        </select>
     </div>
 
     <div class="col-md-4">

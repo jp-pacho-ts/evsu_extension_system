@@ -27,15 +27,59 @@
 
     <div class="table-responsive monitoring-table-wrap">
         <table class="table table-bordered table-hover align-middle monitoring-records-table">
+            <colgroup>
+                <col class="col-entry-id">
+                <col class="col-project-id">
+                <col class="col-program">
+                <col class="col-project-title">
+                <col class="col-special-order">
+                <col class="col-location">
+                <col class="col-location">
+                <col class="col-location">
+                <col class="col-sdg">
+                <col class="col-partner">
+                <col class="col-clientele">
+                <col class="col-campus">
+                <col class="col-school">
+                <col class="col-person">
+                <col class="col-person">
+                <col class="col-members">
+                <col class="col-monitoring-title">
+                <col class="col-date">
+                <col class="col-fund">
+                <col class="col-date">
+                <col class="col-status">
+                <col class="col-description">
+                <col class="col-remarks">
+                <col class="col-created">
+                <col class="col-actions no-print">
+            </colgroup>
             <thead class="table-light">
                 <tr>
+                    <th>Entry ID</th>
+                    <th>Project ID</th>
                     <th>Program</th>
-                    <th>Project & Location</th>
-                    <th>Classification</th>
-                    <th>Team</th>
-                    <th>Monitoring</th>
+                    <th>Project Title</th>
+                    <th>Special Order No.</th>
+                    <th>Barangay</th>
+                    <th>Municipality</th>
+                    <th>Province</th>
+                    <th>SDG</th>
+                    <th>Partner</th>
+                    <th>Clientele</th>
+                    <th>EVSU Campus</th>
+                    <th>School</th>
+                    <th>Leader</th>
+                    <th>Assistant Leader</th>
+                    <th>Members</th>
+                    <th>Additional Monitoring</th>
+                    <th>Monitoring Date</th>
+                    <th>Source of Fund</th>
+                    <th>Terminal Report Date</th>
                     <th>Status</th>
-                    <th>Update & Remarks</th>
+                    <th>Recent Update</th>
+                    <th>Remarks</th>
+                    <th>Created At</th>
                     <th class="no-print">Actions</th>
                 </tr>
             </thead>
@@ -43,38 +87,28 @@
                 <?php foreach(($monitoring ?? $records ?? []) as $m): ?>
                     <?php
                         $currentStatus = $m['status'] ?? 'On-going';
-                        $badge = [
-                            'On-going' => 'primary',
-                            'Completed' => 'success',
-                            'Inactive' => 'warning',
-                            'Expired' => 'danger',
-                            'Terminated' => 'dark'
-                        ][$currentStatus] ?? 'secondary';
                     ?>
                     <tr>
-                        <td>
-                            <strong class="monitoring-cell-title"><?= htmlspecialchars($m['program_title'] ?? '') ?></strong>
-                            <span class="monitoring-meta">S.O. <?= htmlspecialchars($m['special_order_no'] ?? '') ?></span>
-                        </td>
-                        <td>
-                            <strong class="monitoring-cell-title"><?= htmlspecialchars($m['project_title'] ?? '') ?></strong>
-                            <span class="monitoring-meta"><?= htmlspecialchars($m['barangay'] ?? '') ?></span>
-                            <span class="monitoring-meta"><?= htmlspecialchars(trim(($m['municipality'] ?? '').', '.($m['province'] ?? ''), ', ')) ?></span>
-                        </td>
-                        <td>
-                            <strong class="monitoring-cell-title"><?= htmlspecialchars($m['sdg'] ?? '') ?></strong>
-                            <span class="monitoring-meta">Partner: <?= htmlspecialchars($m['partner'] ?? $m['partners'] ?? '') ?></span>
-                            <span class="monitoring-meta">Clientele: <?= htmlspecialchars($m['type_of_clientele'] ?? $m['clientele_type'] ?? '') ?></span>
-                        </td>
-                        <td>
-                            <strong class="monitoring-cell-title"><?= htmlspecialchars($m['leader'] ?? '') ?></strong>
-                            <span class="monitoring-meta">Assistant: <?= htmlspecialchars($m['assistant'] ?? $m['assistant_leader'] ?? '') ?></span>
-                            <span class="monitoring-meta">Members: <?= htmlspecialchars($m['members'] ?? '') ?></span>
-                        </td>
-                        <td>
-                            <strong class="monitoring-cell-title"><?= htmlspecialchars($m['activity_title'] ?? '') ?></strong>
-                            <span class="monitoring-meta"><?= htmlspecialchars($m['monitoring_date'] ?? '') ?></span>
-                        </td>
+                        <td><?= htmlspecialchars($m['id'] ?? '') ?></td>
+                        <td><?= htmlspecialchars($m['project_id'] ?? '') ?></td>
+                        <td><?= htmlspecialchars($m['program_title'] ?? '') ?></td>
+                        <td><?= htmlspecialchars($m['project_title'] ?? '') ?></td>
+                        <td><?= htmlspecialchars($m['special_order_no'] ?? '') ?></td>
+                        <td><?= htmlspecialchars($m['barangay'] ?? '') ?></td>
+                        <td><?= htmlspecialchars($m['municipality'] ?? '') ?></td>
+                        <td><?= htmlspecialchars($m['province'] ?? '') ?></td>
+                        <td><?= htmlspecialchars($m['sdg'] ?? '') ?></td>
+                        <td><?= htmlspecialchars($m['partner'] ?? $m['partners'] ?? '') ?></td>
+                        <td><?= htmlspecialchars($m['type_of_clientele'] ?? $m['clientele_type'] ?? '') ?></td>
+                        <td><?= htmlspecialchars($m['evsu_campus'] ?? '') ?></td>
+                        <td><?= htmlspecialchars($m['campus_school'] ?? '') ?></td>
+                        <td><?= htmlspecialchars($m['leader'] ?? '') ?></td>
+                        <td><?= htmlspecialchars($m['assistant'] ?? $m['assistant_leader'] ?? '') ?></td>
+                        <td><?= htmlspecialchars($m['members'] ?? '') ?></td>
+                        <td><?= htmlspecialchars($m['activity_title'] ?? '') ?></td>
+                        <td><?= htmlspecialchars($m['monitoring_date'] ?? '') ?></td>
+                        <td><?= htmlspecialchars($m['source_of_fund'] ?? '') ?></td>
+                        <td><?= htmlspecialchars($m['terminal_report_date'] ?? '') ?></td>
                         <td>
                             <form method="POST" action="index.php?page=update_monitoring_status" style="margin:0;">
                                 <input type="hidden" name="monitoring_id" value="<?= htmlspecialchars($m['id']) ?>">
@@ -86,10 +120,9 @@
                                 </select>
                             </form>
                         </td>
-                        <td>
-                            <strong class="monitoring-cell-title"><?= htmlspecialchars($m['activity_description'] ?? '') ?></strong>
-                            <span class="monitoring-meta">Remarks: <?= htmlspecialchars($m['remarks'] ?? '') ?></span>
-                        </td>
+                        <td><?= htmlspecialchars($m['activity_description'] ?? '') ?></td>
+                        <td><?= htmlspecialchars($m['remarks'] ?? '') ?></td>
+                        <td><?= htmlspecialchars($m['created_at'] ?? '') ?></td>
                         <td class="monitoring-actions no-print">
                             <button class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#editMonitoringModal<?= intval($m['id']) ?>">Edit</button>
                             <button class="btn btn-sm btn-outline-danger" data-bs-toggle="modal" data-bs-target="#deleteMonitoringModal<?= intval($m['id']) ?>">Delete</button>
@@ -98,7 +131,7 @@
                 <?php endforeach; ?>
 
                 <?php if(empty($monitoring ?? $records ?? [])): ?>
-                    <tr><td colspan="8" class="text-muted text-center">No monitoring records yet.</td></tr>
+                    <tr><td colspan="25" class="text-muted text-center">No monitoring records yet.</td></tr>
                 <?php endif; ?>
             </tbody>
         </table>
@@ -180,15 +213,38 @@
 
 <style>
 .monitoring-table-wrap {
-    overflow-x: visible;
+    overflow-x: auto;
 }
 
 .monitoring-records-table {
     width: 100%;
+    min-width: 3300px;
     table-layout: fixed;
-    font-size: 12px;
+    font-size: 11px;
     line-height: 1.35;
 }
+
+.monitoring-records-table col.col-entry-id { width: 70px; }
+.monitoring-records-table col.col-project-id { width: 78px; }
+.monitoring-records-table col.col-program { width: 160px; }
+.monitoring-records-table col.col-project-title { width: 220px; }
+.monitoring-records-table col.col-special-order { width: 135px; }
+.monitoring-records-table col.col-location { width: 135px; }
+.monitoring-records-table col.col-sdg { width: 115px; }
+.monitoring-records-table col.col-partner { width: 160px; }
+.monitoring-records-table col.col-clientele { width: 145px; }
+.monitoring-records-table col.col-campus { width: 145px; }
+.monitoring-records-table col.col-school { width: 115px; }
+.monitoring-records-table col.col-person { width: 155px; }
+.monitoring-records-table col.col-members { width: 170px; }
+.monitoring-records-table col.col-monitoring-title { width: 200px; }
+.monitoring-records-table col.col-date { width: 120px; }
+.monitoring-records-table col.col-fund { width: 130px; }
+.monitoring-records-table col.col-status { width: 125px; }
+.monitoring-records-table col.col-description { width: 240px; }
+.monitoring-records-table col.col-remarks { width: 210px; }
+.monitoring-records-table col.col-created { width: 150px; }
+.monitoring-records-table col.col-actions { width: 90px; }
 
 .monitoring-records-table th,
 .monitoring-records-table td {
@@ -199,26 +255,8 @@
     vertical-align: top !important;
 }
 
-.monitoring-records-table th:nth-child(1) { width: 12%; }
-.monitoring-records-table th:nth-child(2) { width: 17%; }
-.monitoring-records-table th:nth-child(3) { width: 14%; }
-.monitoring-records-table th:nth-child(4) { width: 15%; }
-.monitoring-records-table th:nth-child(5) { width: 13%; }
-.monitoring-records-table th:nth-child(6) { width: 9%; }
-.monitoring-records-table th:nth-child(7) { width: 12%; }
-.monitoring-records-table th:nth-child(8) { width: 8%; }
-
-.monitoring-cell-title {
-    display: block;
-    line-height: 1.25;
-}
-
-.monitoring-meta {
-    display: block;
-    margin-top: 3px;
-    color: #6b7280;
-    font-size: 11px;
-    line-height: 1.3;
+.monitoring-records-table th {
+    vertical-align: middle !important;
 }
 
 .status-dropdown-inline {
@@ -252,10 +290,6 @@
         padding: 6px 5px !important;
     }
 
-    .monitoring-meta {
-        font-size: 10px;
-    }
-
     .monitoring-actions .btn,
     .status-dropdown-inline {
         font-size: 10px;
@@ -265,7 +299,19 @@
     .sidebar, .no-print, form button { display:none !important; }
     .content { margin:0 !important; padding:10px !important; }
     body { background:white !important; }
-    .monitoring-records-table { font-size:9px; }
+    .monitoring-records-table {
+        min-width: 0;
+        width: 100%;
+        font-size: 5.5px;
+        line-height: 1.1;
+    }
+    .monitoring-records-table col {
+        width: auto !important;
+    }
+    .monitoring-records-table th,
+    .monitoring-records-table td {
+        padding: 1px 2px !important;
+    }
 }
 </style>
 

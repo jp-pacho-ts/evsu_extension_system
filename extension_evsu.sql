@@ -222,6 +222,8 @@ CREATE TABLE `monitoring_entries` (
   `terminal_report_date` date DEFAULT NULL,
   `activity_description` text DEFAULT NULL,
   `remarks` text DEFAULT NULL,
+  `evsu_campus` varchar(150) DEFAULT NULL,
+  `campus_school` varchar(50) DEFAULT NULL,
   `barangay` varchar(150) DEFAULT NULL,
   `municipality` varchar(150) DEFAULT NULL,
   `province` varchar(150) DEFAULT NULL,

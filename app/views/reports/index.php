@@ -23,36 +23,36 @@ include 'app/views/layouts/header.php';
     text-align: right;
 }
 
-.prescriptive-report {
+.descriptive-report {
     max-width: 100%;
 }
 
-.prescriptive-report .table-responsive {
+.descriptive-report .table-responsive {
     overflow-x: auto;
 }
 
-.prescriptive-print-table {
+.descriptive-print-table {
     width: 100%;
     table-layout: fixed;
     font-size: 11px;
     line-height: 1.35;
 }
 
-.prescriptive-print-table th,
-.prescriptive-print-table td {
+.descriptive-print-table th,
+.descriptive-print-table td {
     white-space: normal;
     overflow-wrap: anywhere;
     word-break: break-word;
     vertical-align: top !important;
 }
 
-.prescriptive-print-table th:nth-child(1) { width: 16%; }
-.prescriptive-print-table th:nth-child(2) { width: 15%; }
-.prescriptive-print-table th:nth-child(3) { width: 15%; }
-.prescriptive-print-table th:nth-child(4) { width: 22%; }
-.prescriptive-print-table th:nth-child(5) { width: 8%; }
-.prescriptive-print-table th:nth-child(6) { width: 10%; }
-.prescriptive-print-table th:nth-child(7) { width: 14%; }
+.descriptive-print-table th:nth-child(1) { width: 16%; }
+.descriptive-print-table th:nth-child(2) { width: 15%; }
+.descriptive-print-table th:nth-child(3) { width: 15%; }
+.descriptive-print-table th:nth-child(4) { width: 22%; }
+.descriptive-print-table th:nth-child(5) { width: 8%; }
+.descriptive-print-table th:nth-child(6) { width: 10%; }
+.descriptive-print-table th:nth-child(7) { width: 14%; }
 
 @media print {
     @page {
@@ -72,7 +72,7 @@ include 'app/views/layouts/header.php';
         padding: 0 !important;
     }
 
-    .prescriptive-report {
+    .descriptive-report {
         width: 100% !important;
         max-width: none !important;
         padding: 0 !important;
@@ -80,12 +80,12 @@ include 'app/views/layouts/header.php';
         box-shadow: none !important;
     }
 
-    .prescriptive-report .table-responsive {
+    .descriptive-report .table-responsive {
         width: 100% !important;
         overflow: visible !important;
     }
 
-    .prescriptive-print-table {
+    .descriptive-print-table {
         width: 100% !important;
         min-width: 0 !important;
         table-layout: fixed;
@@ -107,22 +107,22 @@ include 'app/views/layouts/header.php';
         font-size: 10px;
     }
 
-    .prescriptive-print-table thead th {
+    .descriptive-print-table thead th {
         font-size: 8.5px;
         font-weight: 700;
     }
 
-    .prescriptive-print-table thead {
+    .descriptive-print-table thead {
         display: table-header-group;
     }
 
-    .prescriptive-print-table tr {
+    .descriptive-print-table tr {
         break-inside: avoid;
         page-break-inside: avoid;
     }
 
-    .prescriptive-print-table th,
-    .prescriptive-print-table td {
+    .descriptive-print-table th,
+    .descriptive-print-table td {
         padding: 2px 3px !important;
         white-space: normal !important;
         overflow-wrap: anywhere;
@@ -130,17 +130,17 @@ include 'app/views/layouts/header.php';
         vertical-align: top !important;
     }
 
-    .prescriptive-print-table th:nth-child(1) { width: 16%; }
-    .prescriptive-print-table th:nth-child(2) { width: 15%; }
-    .prescriptive-print-table th:nth-child(3) { width: 15%; }
-    .prescriptive-print-table th:nth-child(4) { width: 22%; }
-    .prescriptive-print-table th:nth-child(5) { width: 8%; }
-    .prescriptive-print-table th:nth-child(6) { width: 10%; }
-    .prescriptive-print-table th:nth-child(7) { width: 14%; }
+    .descriptive-print-table th:nth-child(1) { width: 16%; }
+    .descriptive-print-table th:nth-child(2) { width: 15%; }
+    .descriptive-print-table th:nth-child(3) { width: 15%; }
+    .descriptive-print-table th:nth-child(4) { width: 22%; }
+    .descriptive-print-table th:nth-child(5) { width: 8%; }
+    .descriptive-print-table th:nth-child(6) { width: 10%; }
+    .descriptive-print-table th:nth-child(7) { width: 14%; }
 }
 </style>
 
-<div class="card p-4 prescriptive-report">
+<div class="card p-4 descriptive-report">
     <div class="d-flex justify-content-end no-print mb-3">
         <?php if($printAll): ?>
             <a href="index.php?page=report" class="btn btn-outline-secondary me-2">Back to Paginated View</a>
@@ -151,12 +151,12 @@ include 'app/views/layouts/header.php';
     </div>
 
     <div class="report-print-header">
-        <h2 class="report-print-title">Prescriptive Report - <?= htmlspecialchars(function_exists('systemName') ? systemName() : 'GESESP-DA') ?></h2>
+        <h2 class="report-print-title">Descriptive Report - <?= htmlspecialchars(function_exists('systemName') ? systemName() : 'GESESP-DA') ?></h2>
         <p class="report-print-meta">Generated on <?= date('F d, Y') ?><?= $printAll ? ' | All records' : '' ?></p>
     </div>
 
     <div class="table-responsive">
-        <table class="table table-bordered table-sm align-middle prescriptive-print-table">
+        <table class="table table-bordered table-sm align-middle descriptive-print-table">
             <thead class="table-light">
                 <tr>
                     <th>Program</th>
@@ -165,7 +165,7 @@ include 'app/views/layouts/header.php';
                     <th>Recent Update</th>
                     <th>Status</th>
                     <th>Monitoring Date</th>
-                    <th>Prescriptive Action</th>
+                    <th>Descriptive Action</th>
                 </tr>
             </thead>
             <tbody>
@@ -188,7 +188,7 @@ include 'app/views/layouts/header.php';
         </table>
     </div>
     <?php if(!$printAll): ?>
-        <?= renderPagination($pagination ?? [], 'prescriptive report records') ?>
+        <?= renderPagination($pagination ?? [], 'descriptive report records') ?>
     <?php endif; ?>
 </div>
 

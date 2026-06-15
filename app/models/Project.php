@@ -1,7 +1,25 @@
 <?php
 class Project {
     private $conn;
-    public function __construct($db) { $this->conn = $db; }
+    public function __construct($db) {
+        $this->conn = $db;
+        $this->ensureMonitoringCampusColumns();
+    }
+
+    private function ensureMonitoringCampusColumns() {
+        $this->ensureMonitoringColumn('evsu_campus', "ALTER TABLE monitoring_entries ADD COLUMN evsu_campus varchar(150) DEFAULT NULL AFTER remarks");
+        $this->ensureMonitoringColumn('campus_school', "ALTER TABLE monitoring_entries ADD COLUMN campus_school varchar(50) DEFAULT NULL AFTER evsu_campus");
+    }
+
+    private function ensureMonitoringColumn($column, $sql) {
+        $column = $this->conn->real_escape_string($column);
+        $result = @$this->conn->query("SHOW COLUMNS FROM monitoring_entries LIKE '$column'");
+        if($result && $result->num_rows > 0) return true;
+
+        @$this->conn->query($sql);
+        $result = @$this->conn->query("SHOW COLUMNS FROM monitoring_entries LIKE '$column'");
+        return $result && $result->num_rows > 0;
+    }
 
     public function all() {
         return $this->queryProjects();
@@ -18,15 +36,25 @@ class Project {
         return $this->queryProjects(" LIMIT $limit OFFSET $offset");
     }
 
-    private function queryProjects($limitSql = '') {
+    public function rankingPaginated($limit, $offset) {
+        $limit = max(1, intval($limit));
+        $offset = max(0, intval($offset));
+        return $this->queryProjects(" LIMIT $limit OFFSET $offset", " ORDER BY esfi_score DESC, projects.created_at DESC");
+    }
+
+    private function queryProjects($limitSql = '', $orderSql = " ORDER BY projects.created_at DESC") {
         $sql = "SELECT projects.*, programs.program_title,
                 (SELECT COUNT(*) FROM monitoring_entries WHERE monitoring_entries.project_id = projects.id) AS monitoring_count,
+                (((SELECT COUNT(*) FROM monitoring_entries WHERE monitoring_entries.project_id = projects.id) * 0.70) + ((projects.participants / 100) * 0.30)) AS esfi_score,
                 (SELECT me.activity_title FROM monitoring_entries me WHERE me.project_id = projects.id ORDER BY me.monitoring_date DESC, me.id DESC LIMIT 1) AS latest_monitoring_title,
                 (SELECT me.monitoring_date FROM monitoring_entries me WHERE me.project_id = projects.id ORDER BY me.monitoring_date DESC, me.id DESC LIMIT 1) AS latest_monitoring_date,
+                (SELECT me.status FROM monitoring_entries me WHERE me.project_id = projects.id ORDER BY me.monitoring_date DESC, me.id DESC LIMIT 1) AS latest_monitoring_status,
+                (SELECT me.evsu_campus FROM monitoring_entries me WHERE me.project_id = projects.id ORDER BY me.monitoring_date DESC, me.id DESC LIMIT 1) AS evsu_campus,
+                (SELECT me.campus_school FROM monitoring_entries me WHERE me.project_id = projects.id ORDER BY me.monitoring_date DESC, me.id DESC LIMIT 1) AS campus_school,
                 (SELECT COALESCE(NULLIF(me.activity_description,''), NULLIF(me.remarks,''), '') FROM monitoring_entries me WHERE me.project_id = projects.id ORDER BY me.monitoring_date DESC, me.id DESC LIMIT 1) AS latest_update
                 FROM projects
-                JOIN programs ON programs.id = projects.program_id
-                ORDER BY projects.created_at DESC".$limitSql;
+                JOIN programs ON programs.id = projects.program_id".
+                $orderSql.$limitSql;
         $result = $this->conn->query($sql);
         $data = [];
         if($result) while($row = $result->fetch_assoc()) {

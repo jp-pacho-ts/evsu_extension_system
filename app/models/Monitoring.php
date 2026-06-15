@@ -4,10 +4,26 @@ class Monitoring {
 
     public function __construct($db) {
         $this->conn = $db;
+        $this->ensureCampusColumns();
     }
 
     private function esc($value) {
         return $this->conn->real_escape_string($value ?? '');
+    }
+
+    private function ensureCampusColumns() {
+        $this->ensureColumn('evsu_campus', "ALTER TABLE monitoring_entries ADD COLUMN evsu_campus varchar(150) DEFAULT NULL AFTER remarks");
+        $this->ensureColumn('campus_school', "ALTER TABLE monitoring_entries ADD COLUMN campus_school varchar(50) DEFAULT NULL AFTER evsu_campus");
+    }
+
+    private function ensureColumn($column, $sql) {
+        $column = $this->esc($column);
+        $result = @$this->conn->query("SHOW COLUMNS FROM monitoring_entries LIKE '$column'");
+        if($result && $result->num_rows > 0) return true;
+
+        @$this->conn->query($sql);
+        $result = @$this->conn->query("SHOW COLUMNS FROM monitoring_entries LIKE '$column'");
+        return $result && $result->num_rows > 0;
     }
 
     public function all() {
@@ -63,6 +79,8 @@ class Monitoring {
         $terminal_report_date = $this->esc($data['terminal_report_date'] ?? '');
         $activity_description = $this->esc($data['activity_description'] ?? '');
         $remarks = $this->esc($data['remarks'] ?? '');
+        $evsu_campus = $this->esc($data['evsu_campus'] ?? '');
+        $campus_school = $this->esc($data['campus_school'] ?? '');
         $status = $this->esc($data['status'] ?? ($project['status'] ?? 'On-going'));
 
         $monitoringDateSql = $monitoring_date ? "'$monitoring_date'" : "NULL";
@@ -76,7 +94,9 @@ class Monitoring {
             status,
             terminal_report_date,
             activity_description,
-            remarks
+            remarks,
+            evsu_campus,
+            campus_school
         ) VALUES (
             $project_id,
             '$activity_title',
@@ -85,7 +105,9 @@ class Monitoring {
             '$status',
             $terminalDateSql,
             '$activity_description',
-            '$remarks'
+            '$remarks',
+            '$evsu_campus',
+            '$campus_school'
         )");
 
         if($ok && $project_id > 0) {
@@ -109,6 +131,8 @@ class Monitoring {
         $terminal_report_date = $this->esc($data['terminal_report_date'] ?? '');
         $activity_description = $this->esc($data['activity_description'] ?? '');
         $remarks = $this->esc($data['remarks'] ?? '');
+        $evsu_campus = $this->esc($data['evsu_campus'] ?? '');
+        $campus_school = $this->esc($data['campus_school'] ?? '');
         $status = $this->esc($data['status'] ?? 'On-going');
 
         $monitoringDateSql = $monitoring_date ? "'$monitoring_date'" : "NULL";
@@ -122,7 +146,9 @@ class Monitoring {
                 status='$status',
                 terminal_report_date=$terminalDateSql,
                 activity_description='$activity_description',
-                remarks='$remarks'
+                remarks='$remarks',
+                evsu_campus='$evsu_campus',
+                campus_school='$campus_school'
             WHERE id=$id");
 
         if($ok) {

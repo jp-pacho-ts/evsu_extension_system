@@ -33,8 +33,7 @@ class QuarterlyReportController {
     private $manageRoles = [
         'Department Coordinator',
         'Extension Staff',
-        'School Coordinator',
-        'Super Admin'
+        'School Coordinator'
     ];
 
     public function __construct($db) {

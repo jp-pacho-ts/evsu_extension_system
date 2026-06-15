@@ -5,6 +5,7 @@
 .report-form table{width:100%;border-collapse:collapse}
 .report-form th,.report-form td{border:1px solid #111;padding:6px;vertical-align:middle}
 .center{text-align:center}.bold{font-weight:bold}.report-title{font-size:22px;font-weight:bold}
+.report-logo{display:block;width:92px;height:92px;object-fit:contain;margin:0 auto}
 .signature-line{border-top:1px solid #111;width:220px;margin:55px auto 5px}
 .phase-box{text-align:center;font-size:20px;font-weight:bold}
 @media print{.sidebar,.no-print{display:none!important}.content{margin-left:0!important;padding:0!important}body{background:white}.report-form{border:none;font-size:11px}}
@@ -167,7 +168,7 @@ function signatureDisplayByRole2($approvals, $role) {
 <div class="report-form">
 <table>
 <tr>
-<td rowspan="3" style="width:110px;" class="center bold">EVSU<br>LOGO</td>
+<td rowspan="3" style="width:110px;" class="center bold"><img src="public/assets/images/evsu-official-logo.png" alt="EVSU Official Logo" class="report-logo"></td>
 <td rowspan="3" class="center">
 <div class="report-title">EASTERN VISAYAS STATE UNIVERSITY</div>
 <div class="bold">Tacloban City</div>

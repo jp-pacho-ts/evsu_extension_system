@@ -1,6 +1,6 @@
 <?php include 'app/views/layouts/header.php'; ?>
 
-<p class="text-muted">University-wide consolidated analytics, GIS-ready monitoring, and prescriptive analytics based on Extension Office monitoring status.</p>
+<p class="text-muted">University-wide consolidated analytics, GIS-ready monitoring, and descriptive analytics based on Extension Office monitoring status.</p>
 
 <div class="row g-3 mb-4">
     <div class="col-md-2">
@@ -44,9 +44,9 @@
 <div class="row g-4 mt-4">
     <div class="col-xxl-8">
         <div class="card p-3 h-100 dashboard-panel">
-            <h5 class="fw-bold">Prescriptive Decision Support</h5>
+            <h5 class="fw-bold">Descriptive Decision Support</h5>
             <div class="table-responsive dashboard-table-scroll">
-                <table class="table table-sm table-hover align-middle dashboard-compact-table dashboard-prescriptive-table">
+                <table class="table table-sm table-hover align-middle dashboard-compact-table dashboard-descriptive-table">
                     <thead class="table-light">
                         <tr>
                             <th>Project Title</th>
@@ -54,7 +54,7 @@
                             <th>Latest Monitoring</th>
                             <th>Recent Update</th>
                             <th>Updated</th>
-                            <th>Prescriptive Action</th>
+                            <th>Descriptive Action</th>
                         </tr>
                     </thead>
                     <tbody>

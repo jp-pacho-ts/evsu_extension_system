@@ -26,7 +26,7 @@ $pageTitles = [
     'quarterly_reports' => 'Quarterly Reports',
     'edit_quarterly_report' => 'Quarterly Report',
     'view_quarterly_report' => 'Quarterly Report',
-    'report' => 'Prescriptive Report',
+    'report' => 'Descriptive Report',
     'map' => 'GIS Map',
     'users' => 'User Management',
     'logs' => 'Activity Logs',
@@ -112,7 +112,7 @@ if($initials === '') $initials = 'GE';
 
             <?php if($menuAllowed(['Super Admin','Admin','Extension Director'])): ?>
                 <p class="sidebar-label">Reports</p>
-                <a class="sidebar-link<?= $activeClass(['report']) ?>" href="index.php?page=report">Prescriptive Report</a>
+                <a class="sidebar-link<?= $activeClass(['report']) ?>" href="index.php?page=report">Descriptive Report</a>
             <?php endif; ?>
 
             <?php if(canAccessGisMap()): ?>

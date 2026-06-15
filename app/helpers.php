@@ -7,6 +7,12 @@ function requireRole($roles){ requireLogin(); if(!hasRole($roles)){ include "app
 function requireAccess($allowed){ requireLogin(); if(!$allowed){ include "app/views/access_denied.php"; exit(); } }
 function systemName(){ return 'GESESP-DA'; }
 function systemSubtitle(){ return 'Extension Services Data Analytics'; }
+function scriptJson($value, $fallback = 'null'){
+    $flags = JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT | JSON_UNESCAPED_SLASHES;
+    if(defined('JSON_INVALID_UTF8_SUBSTITUTE')) $flags |= JSON_INVALID_UTF8_SUBSTITUTE;
+    $json = json_encode($value, $flags);
+    return $json !== false ? $json : $fallback;
+}
 function canAccessApprovalCenter(){ return hasRole(['Department Coordinator','School Coordinator','Campus Director','Dean','VP ORIES']); }
 function canAccessPrograms(){ return hasRole(['Super Admin','Admin']); }
 function canAccessProjects(){ return hasRole(['Super Admin','Admin']); }

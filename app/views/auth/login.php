@@ -42,12 +42,6 @@ $appSubtitle = function_exists('systemSubtitle') ? systemSubtitle() : 'Extension
 
             <button type="submit">Login</button>
         </form>
-
-        <div class="login-demo">
-            admin1/admin123<br>
-            staff/staff123<br>
-            schoolcoord/school123
-        </div>
     </div>
 </div>
 </body>
