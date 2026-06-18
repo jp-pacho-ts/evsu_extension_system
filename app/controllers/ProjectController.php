@@ -3,18 +3,21 @@ require_once "app/models/Project.php";
 require_once "app/models/Program.php";
 require_once "app/models/Location.php";
 require_once "app/models/BarangayLocation.php";
+require_once "app/models/Sdg.php";
 
 class ProjectController {
     private $model;
     private $programModel;
     private $locationModel;
     private $barangayLocationModel;
+    private $sdgModel;
 
     public function __construct($db) {
         $this->model = new Project($db);
         $this->programModel = new Program($db);
         $this->locationModel = new Location($db);
         $this->barangayLocationModel = new BarangayLocation($db);
+        $this->sdgModel = new Sdg($db);
     }
 
     public function index() {
@@ -42,6 +45,7 @@ class ProjectController {
 
         $locations = $this->locationModel->all();
         $barangayLocations = $this->barangayLocationModel->all();
+        $sdgOptions = $this->sdgModel->all();
 
         include "app/views/projects/index.php";
     }
@@ -61,6 +65,7 @@ class ProjectController {
 
         $locations = $this->locationModel->all();
         $barangayLocations = $this->barangayLocationModel->all();
+        $sdgOptions = $this->sdgModel->all();
 
         include "app/views/projects/index.php";
     }

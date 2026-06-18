@@ -537,7 +537,7 @@ CREATE TABLE `projects` (
   `id` int(11) NOT NULL,
   `program_id` int(11) DEFAULT NULL,
   `project_title` varchar(255) NOT NULL,
-  `sdg` varchar(180) DEFAULT NULL,
+  `sdg` text DEFAULT NULL,
   `partners` varchar(255) DEFAULT NULL,
   `partner` varchar(255) DEFAULT NULL,
   `type_of_clientele` varchar(180) DEFAULT NULL,
@@ -628,6 +628,65 @@ INSERT INTO `projects` (`id`, `program_id`, `project_title`, `sdg`, `partners`, 
 (60, 4, 'Project LUNTIAN - Allen 58', 'SDG 13: Climate Action', 'DOH; BHW', NULL, 'Youth Volunteers', NULL, 'Dr. Maria Santos', 'Prof. Allen Reyes', 'Livelihood Extension Team', 100, 55000.00, '2026-04-08', '2026-12-18', 'SO-BULK-2026-058', 'Northern Samar', 'Allen', 'Sabang', 12.505800, 124.284700, 12.505800, 124.284700, 'Inactive', '2026-05-22 03:50:14'),
 (61, 5, 'Project TECH-READY - Naval 59', 'SDG 9: Industry, Innovation and Infrastructure', 'DA; Farmers Association', NULL, 'Barangay Officials', NULL, 'Dr. Roberto Lim', 'Prof. Grace dela Peña', 'Environment Extension Team', 110, 65000.00, '2026-05-09', '2026-12-19', 'SO-BULK-2026-059', 'Biliran', 'Naval', 'Calumpang', 11.557800, 124.397800, 11.557800, 124.397800, 'Expired', '2026-05-22 03:50:14'),
 (62, 6, 'Project ALERT - Caibiran 60', 'SDG 11: Sustainable Cities and Communities', 'LGU; Barangay Council', NULL, 'DRRM Volunteers', NULL, 'Dr. Joleco Agullo', 'Prof. Karen Montejo', 'ICT Extension Team', 20, 75000.00, '2026-06-10', '2026-12-20', 'SO-BULK-2026-060', 'Biliran', 'Caibiran', 'Tomalistis', 11.570900, 124.582300, 11.570900, 124.582300, 'Terminated', '2026-05-22 03:50:14');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `sdgs`
+--
+
+CREATE TABLE `sdgs` (
+  `id` int(11) NOT NULL,
+  `sdg_number` int(11) DEFAULT NULL,
+  `title` varchar(180) NOT NULL,
+  `description` text DEFAULT NULL,
+  `status` enum('Active','Inactive') DEFAULT 'Active',
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `updated_at` timestamp NULL DEFAULT NULL ON UPDATE current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `sdgs`
+--
+
+INSERT INTO `sdgs` (`id`, `sdg_number`, `title`, `description`, `status`, `created_at`, `updated_at`) VALUES
+(1, 1, 'No Poverty', NULL, 'Active', '2026-06-17 00:00:00', NULL),
+(2, 2, 'Zero Hunger', NULL, 'Active', '2026-06-17 00:00:00', NULL),
+(3, 3, 'Good Health and Well-being', NULL, 'Active', '2026-06-17 00:00:00', NULL),
+(4, 4, 'Quality Education', NULL, 'Active', '2026-06-17 00:00:00', NULL),
+(5, 5, 'Gender Equality', NULL, 'Active', '2026-06-17 00:00:00', NULL),
+(6, 6, 'Clean Water and Sanitation', NULL, 'Active', '2026-06-17 00:00:00', NULL),
+(7, 7, 'Affordable and Clean Energy', NULL, 'Active', '2026-06-17 00:00:00', NULL),
+(8, 8, 'Decent Work and Economic Growth', NULL, 'Active', '2026-06-17 00:00:00', NULL),
+(9, 9, 'Industry, Innovation and Infrastructure', NULL, 'Active', '2026-06-17 00:00:00', NULL),
+(10, 10, 'Reduced Inequalities', NULL, 'Active', '2026-06-17 00:00:00', NULL),
+(11, 11, 'Sustainable Cities and Communities', NULL, 'Active', '2026-06-17 00:00:00', NULL),
+(12, 12, 'Responsible Consumption and Production', NULL, 'Active', '2026-06-17 00:00:00', NULL),
+(13, 13, 'Climate Action', NULL, 'Active', '2026-06-17 00:00:00', NULL),
+(14, 14, 'Life Below Water', NULL, 'Active', '2026-06-17 00:00:00', NULL),
+(15, 15, 'Life on Land', NULL, 'Active', '2026-06-17 00:00:00', NULL),
+(16, 16, 'Peace, Justice and Strong Institutions', NULL, 'Active', '2026-06-17 00:00:00', NULL),
+(17, 17, 'Partnerships for the Goals', NULL, 'Active', '2026-06-17 00:00:00', NULL);
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `project_sdgs`
+--
+
+CREATE TABLE `project_sdgs` (
+  `project_id` int(11) NOT NULL,
+  `sdg_id` int(11) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Backfilling data for table `project_sdgs`
+--
+
+INSERT INTO `project_sdgs` (`project_id`, `sdg_id`)
+SELECT p.id, s.id
+FROM `projects` p
+JOIN `sdgs` s ON p.sdg LIKE CONCAT('%SDG ', s.sdg_number, ': ', s.title, '%');
 
 -- --------------------------------------------------------
 
@@ -778,6 +837,13 @@ ALTER TABLE `projects`
   ADD PRIMARY KEY (`id`);
 
 --
+-- Indexes for table `project_sdgs`
+--
+ALTER TABLE `project_sdgs`
+  ADD PRIMARY KEY (`project_id`,`sdg_id`),
+  ADD KEY `sdg_id` (`sdg_id`);
+
+--
 -- Indexes for table `quarterly_reports`
 --
 ALTER TABLE `quarterly_reports`
@@ -788,6 +854,13 @@ ALTER TABLE `quarterly_reports`
 --
 ALTER TABLE `quarterly_report_items`
   ADD PRIMARY KEY (`id`);
+
+--
+-- Indexes for table `sdgs`
+--
+ALTER TABLE `sdgs`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `unique_sdg_number` (`sdg_number`);
 
 --
 -- Indexes for table `users`
@@ -853,6 +926,12 @@ ALTER TABLE `programs`
 --
 ALTER TABLE `projects`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=63;
+
+--
+-- AUTO_INCREMENT for table `sdgs`
+--
+ALTER TABLE `sdgs`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=18;
 
 --
 -- AUTO_INCREMENT for table `quarterly_reports`

@@ -1,25 +1,7 @@
 <?php
 $projectForm = $projectForm ?? [];
 $statusOptions = ['On-going','Completed','Terminated','Inactive','Expired'];
-$sdgOptions = [
-    'SDG 1: No Poverty',
-    'SDG 2: Zero Hunger',
-    'SDG 3: Good Health and Well-being',
-    'SDG 4: Quality Education',
-    'SDG 5: Gender Equality',
-    'SDG 6: Clean Water and Sanitation',
-    'SDG 7: Affordable and Clean Energy',
-    'SDG 8: Decent Work and Economic Growth',
-    'SDG 9: Industry, Innovation and Infrastructure',
-    'SDG 10: Reduced Inequalities',
-    'SDG 11: Sustainable Cities and Communities',
-    'SDG 12: Responsible Consumption and Production',
-    'SDG 13: Climate Action',
-    'SDG 14: Life Below Water',
-    'SDG 15: Life on Land',
-    'SDG 16: Peace, Justice and Strong Institutions',
-    'SDG 17: Partnerships for the Goals',
-];
+$sdgOptions = $sdgOptions ?? [];
 $provinceList = [];
 foreach(($locations ?? []) as $loc) {
     if(!empty($loc['province'])) $provinceList[$loc['province']] = true;
@@ -28,6 +10,11 @@ $selectedProvince = $projectForm['province'] ?? '';
 $selectedMunicipality = $projectForm['municipality'] ?? '';
 $selectedBarangay = $projectForm['barangay'] ?? '';
 $selectedSdg = $projectForm['sdg'] ?? '';
+$selectedSdgIds = [];
+foreach(explode(',', (string)($projectForm['sdg_ids'] ?? '')) as $sdgId) {
+    $sdgId = intval($sdgId);
+    if($sdgId > 0) $selectedSdgIds[$sdgId] = true;
+}
 ?>
 <div class="row g-3">
     <div class="col-md-4">
@@ -47,15 +34,24 @@ $selectedSdg = $projectForm['sdg'] ?? '';
     </div>
 
     <div class="col-md-4">
-        <label>SDG</label>
-        <select name="sdg" class="form-select">
-            <option value="">Select SDG</option>
-            <?php if($selectedSdg && !in_array($selectedSdg, $sdgOptions, true)): ?>
-                <option value="<?= htmlspecialchars($selectedSdg) ?>" selected><?= htmlspecialchars($selectedSdg) ?></option>
-            <?php endif; ?>
+        <label>SDGs</label>
+        <input type="hidden" name="sdg_ids_submitted" value="1">
+        <input type="hidden" name="sdg" value="<?= htmlspecialchars($selectedSdg) ?>">
+        <select name="sdg_ids[]" class="form-select" multiple size="6">
+            <?php $matchedSelectedSdg = false; ?>
             <?php foreach($sdgOptions as $sdg): ?>
-                <option value="<?= htmlspecialchars($sdg) ?>" <?= $selectedSdg === $sdg ? 'selected' : '' ?>><?= htmlspecialchars($sdg) ?></option>
+                <?php
+                    $sdgId = intval($sdg['id'] ?? 0);
+                    $sdgLabel = $sdg['label'] ?? '';
+                    $isSelected = isset($selectedSdgIds[$sdgId]) || ($selectedSdg !== '' && $sdgLabel !== '' && strpos($selectedSdg, $sdgLabel) !== false);
+                    if($isSelected) $matchedSelectedSdg = true;
+                    if(($sdg['status'] ?? 'Active') !== 'Active' && !$isSelected) continue;
+                ?>
+                <option value="<?= $sdgId ?>" <?= $isSelected ? 'selected' : '' ?>><?= htmlspecialchars($sdgLabel) ?></option>
             <?php endforeach; ?>
+            <?php if($selectedSdg !== '' && !$matchedSelectedSdg): ?>
+                <option value="" selected><?= htmlspecialchars($selectedSdg) ?></option>
+            <?php endif; ?>
         </select>
     </div>
 

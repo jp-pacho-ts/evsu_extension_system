@@ -29,6 +29,7 @@ $pageTitles = [
     'report' => 'Descriptive Report',
     'map' => 'GIS Map',
     'users' => 'User Management',
+    'sdgs' => 'SDG Management',
     'logs' => 'Activity Logs',
     'notifications' => 'Notifications',
 ];
@@ -122,6 +123,7 @@ if($initials === '') $initials = 'GE';
             <?php if($menuAllowed(['Super Admin','Admin'])): ?>
                 <p class="sidebar-label">Administration</p>
                 <a class="sidebar-link<?= $activeClass(['users']) ?>" href="index.php?page=users">User Management</a>
+                <a class="sidebar-link<?= $activeClass(['sdgs']) ?>" href="index.php?page=sdgs">SDG Management</a>
                 <a class="sidebar-link<?= $activeClass(['logs']) ?>" href="index.php?page=logs">Activity Logs</a>
             <?php endif; ?>
         </nav>

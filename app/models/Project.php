@@ -1,8 +1,13 @@
 <?php
+require_once __DIR__ . "/Sdg.php";
+
 class Project {
     private $conn;
+    private $sdgModel;
+
     public function __construct($db) {
         $this->conn = $db;
+        $this->sdgModel = new Sdg($db);
         $this->ensureMonitoringCampusColumns();
     }
 
@@ -43,7 +48,11 @@ class Project {
     }
 
     private function queryProjects($limitSql = '', $orderSql = " ORDER BY projects.created_at DESC") {
+        $sdgLabelsSql = "(SELECT GROUP_CONCAT(CASE WHEN s.sdg_number IS NOT NULL THEN CONCAT('SDG ', s.sdg_number, ': ', s.title) ELSE s.title END ORDER BY COALESCE(s.sdg_number, 999), s.title SEPARATOR ', ') FROM project_sdgs ps JOIN sdgs s ON s.id = ps.sdg_id WHERE ps.project_id = projects.id)";
+        $sdgIdsSql = "(SELECT GROUP_CONCAT(ps.sdg_id ORDER BY COALESCE(s.sdg_number, 999), s.title SEPARATOR ',') FROM project_sdgs ps JOIN sdgs s ON s.id = ps.sdg_id WHERE ps.project_id = projects.id)";
         $sql = "SELECT projects.*, programs.program_title,
+                $sdgLabelsSql AS sdg_display,
+                $sdgIdsSql AS sdg_ids,
                 (SELECT COUNT(*) FROM monitoring_entries WHERE monitoring_entries.project_id = projects.id) AS monitoring_count,
                 (((SELECT COUNT(*) FROM monitoring_entries WHERE monitoring_entries.project_id = projects.id) * 0.70) + ((projects.participants / 100) * 0.30)) AS esfi_score,
                 (SELECT me.activity_title FROM monitoring_entries me WHERE me.project_id = projects.id ORDER BY me.monitoring_date DESC, me.id DESC LIMIT 1) AS latest_monitoring_title,
@@ -58,6 +67,7 @@ class Project {
         $result = $this->conn->query($sql);
         $data = [];
         if($result) while($row = $result->fetch_assoc()) {
+            if(trim((string)($row['sdg_display'] ?? '')) !== '') $row['sdg'] = $row['sdg_display'];
             $row['esfi'] = computeESFI($row['monitoring_count'], $row['participants']);
             $row['esfi_label'] = esfiInterpretation($row['esfi']);
             $data[] = $row;
@@ -67,7 +77,11 @@ class Project {
 
     public function find($id) {
         $id = intval($id);
-        return $this->conn->query("SELECT projects.*, programs.program_title FROM projects JOIN programs ON programs.id=projects.program_id WHERE projects.id=$id")->fetch_assoc();
+        $sdgLabelsSql = "(SELECT GROUP_CONCAT(CASE WHEN s.sdg_number IS NOT NULL THEN CONCAT('SDG ', s.sdg_number, ': ', s.title) ELSE s.title END ORDER BY COALESCE(s.sdg_number, 999), s.title SEPARATOR ', ') FROM project_sdgs ps JOIN sdgs s ON s.id = ps.sdg_id WHERE ps.project_id = projects.id)";
+        $sdgIdsSql = "(SELECT GROUP_CONCAT(ps.sdg_id ORDER BY COALESCE(s.sdg_number, 999), s.title SEPARATOR ',') FROM project_sdgs ps JOIN sdgs s ON s.id = ps.sdg_id WHERE ps.project_id = projects.id)";
+        $row = $this->conn->query("SELECT projects.*, programs.program_title, $sdgLabelsSql AS sdg_display, $sdgIdsSql AS sdg_ids FROM projects JOIN programs ON programs.id=projects.program_id WHERE projects.id=$id")->fetch_assoc();
+        if($row && trim((string)($row['sdg_display'] ?? '')) !== '') $row['sdg'] = $row['sdg_display'];
+        return $row;
     }
 
     public function create($data) {
@@ -89,7 +103,9 @@ class Project {
         };
 
         $projectTitle = $esc($data['project_title'] ?? '');
-        $sdg = $esc($data['sdg'] ?? '');
+        $sdgIds = $data['sdg_ids'] ?? [];
+        $sdgLabels = $this->sdgModel->labelsForIds($sdgIds);
+        $sdg = $esc(!empty($sdgLabels) ? implode(', ', $sdgLabels) : (isset($data['sdg_ids_submitted']) ? '' : ($data['sdg'] ?? '')));
         $partners = $esc($data['partners'] ?? '');
         $typeOfClientele = $esc($data['type_of_clientele'] ?? '');
         $participants = intval($data['participants'] ?? 0);
@@ -109,8 +125,10 @@ class Project {
         $longitude = $esc($data['longitude'] ?? '');
         $status = $esc($data['status'] ?? 'On-going');
 
-        return $this->conn->query("INSERT INTO projects(program_id, project_title, sdg, partners, type_of_clientele, leader, assistant_leader, members, participants, project_cost, start_date, end_date, special_order_no, barangay, barangay_latitude, barangay_longitude, municipality, province, latitude, longitude, status)
+        $ok = $this->conn->query("INSERT INTO projects(program_id, project_title, sdg, partners, type_of_clientele, leader, assistant_leader, members, participants, project_cost, start_date, end_date, special_order_no, barangay, barangay_latitude, barangay_longitude, municipality, province, latitude, longitude, status)
             VALUES('$programId', '$projectTitle', '$sdg', '$partners', '$typeOfClientele', '$leader', '$assistantLeader', '$members', '$participants', '$projectCost', '$startDate', '$endDate', '$specialOrderNo', '$barangay', '$barangayLatitude', '$barangayLongitude', '$municipality', '$province', '$latitude', '$longitude', '$status')");
+        if($ok) $this->sdgModel->syncProject($this->conn->insert_id, $sdgIds);
+        return $ok;
     }
 
     public function update($data) {
@@ -123,7 +141,9 @@ class Project {
 
         $programId = intval($data['program_id'] ?? 0);
         $projectTitle = $esc($data['project_title'] ?? '');
-        $sdg = $esc($data['sdg'] ?? '');
+        $sdgIds = $data['sdg_ids'] ?? [];
+        $sdgLabels = $this->sdgModel->labelsForIds($sdgIds);
+        $sdg = $esc(!empty($sdgLabels) ? implode(', ', $sdgLabels) : (isset($data['sdg_ids_submitted']) ? '' : ($data['sdg'] ?? '')));
         $partners = $esc($data['partners'] ?? '');
         $typeOfClientele = $esc($data['type_of_clientele'] ?? '');
         $participants = intval($data['participants'] ?? 0);
@@ -136,7 +156,7 @@ class Project {
         $longitude = $esc($data['longitude'] ?? '');
         $status = $esc($data['status'] ?? 'On-going');
 
-        return $this->conn->query("UPDATE projects SET
+        $ok = $this->conn->query("UPDATE projects SET
                 program_id='$programId',
                 project_title='$projectTitle',
                 sdg='$sdg',
@@ -152,6 +172,8 @@ class Project {
                 longitude='$longitude',
                 status='$status'
             WHERE id=$id");
+        if($ok) $this->sdgModel->syncProject($id, $sdgIds);
+        return $ok;
     }
 
     public function delete($id) {

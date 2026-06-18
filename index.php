@@ -85,6 +85,10 @@ switch ($page) {
         require_once "app/controllers/UserManagementController.php";
         (new UserManagementController($db))->index();
         break;
+    case 'sdgs':
+        require_once "app/controllers/SdgController.php";
+        (new SdgController($db))->index();
+        break;
 
     case 'notifications':
         require_once "app/controllers/NotificationController.php";
