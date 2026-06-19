@@ -44,10 +44,10 @@ class Project {
     public function rankingPaginated($limit, $offset) {
         $limit = max(1, intval($limit));
         $offset = max(0, intval($offset));
-        return $this->queryProjects(" LIMIT $limit OFFSET $offset", " ORDER BY esfi_score DESC, projects.created_at DESC");
+        return $this->queryProjects(" LIMIT $limit OFFSET $offset", " ORDER BY esfi_score DESC, projects.created_at DESC, projects.id DESC");
     }
 
-    private function queryProjects($limitSql = '', $orderSql = " ORDER BY projects.created_at DESC") {
+    private function queryProjects($limitSql = '', $orderSql = " ORDER BY projects.created_at DESC, projects.id DESC") {
         $sdgLabelsSql = "(SELECT GROUP_CONCAT(CASE WHEN s.sdg_number IS NOT NULL THEN CONCAT('SDG ', s.sdg_number, ': ', s.title) ELSE s.title END ORDER BY COALESCE(s.sdg_number, 999), s.title SEPARATOR ', ') FROM project_sdgs ps JOIN sdgs s ON s.id = ps.sdg_id WHERE ps.project_id = projects.id)";
         $sdgIdsSql = "(SELECT GROUP_CONCAT(ps.sdg_id ORDER BY COALESCE(s.sdg_number, 999), s.title SEPARATOR ',') FROM project_sdgs ps JOIN sdgs s ON s.id = ps.sdg_id WHERE ps.project_id = projects.id)";
         $sql = "SELECT projects.*, programs.program_title,

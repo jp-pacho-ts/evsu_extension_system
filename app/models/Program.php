@@ -11,7 +11,7 @@ class Program {
     }
 
     public function all() {
-        $result = $this->conn->query("SELECT * FROM programs ORDER BY created_at DESC");
+        $result = $this->conn->query("SELECT * FROM programs ORDER BY created_at DESC, id DESC");
         $data = [];
         if($result) while($row = $result->fetch_assoc()) $data[] = $row;
         return $data;
@@ -25,7 +25,7 @@ class Program {
     public function paginated($limit, $offset) {
         $limit = max(1, intval($limit));
         $offset = max(0, intval($offset));
-        $result = $this->conn->query("SELECT * FROM programs ORDER BY created_at DESC LIMIT $limit OFFSET $offset");
+        $result = $this->conn->query("SELECT * FROM programs ORDER BY created_at DESC, id DESC LIMIT $limit OFFSET $offset");
         $data = [];
         if($result) while($row = $result->fetch_assoc()) $data[] = $row;
         return $data;

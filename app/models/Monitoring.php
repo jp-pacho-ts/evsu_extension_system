@@ -87,7 +87,7 @@ class Monitoring {
                 LEFT JOIN projects pr ON pr.id = me.project_id
                 LEFT JOIN programs pg ON pg.id = pr.program_id
                 ".$whereSql."
-                ORDER BY me.monitoring_date DESC, me.id DESC".$limitSql;
+                ORDER BY me.created_at DESC, me.id DESC".$limitSql;
 
         $result = $this->conn->query($sql);
         $data = [];
