@@ -1,6 +1,7 @@
 <?php
 class Monitoring {
     private $conn;
+    private $statuses = ['On-going','Completed','Inactive','Expired','Terminated'];
 
     public function __construct($db) {
         $this->conn = $db;
@@ -35,13 +36,38 @@ class Monitoring {
         return $result ? intval($result->fetch_assoc()['total'] ?? 0) : 0;
     }
 
+    public function countFiltered($filters = []) {
+        $whereSql = $this->filterWhereSql($filters);
+        $sql = "SELECT COUNT(*) AS total
+                FROM monitoring_entries me
+                LEFT JOIN projects pr ON pr.id = me.project_id
+                LEFT JOIN programs pg ON pg.id = pr.program_id".$whereSql;
+
+        $result = $this->conn->query($sql);
+        return $result ? intval($result->fetch_assoc()['total'] ?? 0) : 0;
+    }
+
     public function paginated($limit, $offset) {
         $limit = max(1, intval($limit));
         $offset = max(0, intval($offset));
-        return $this->queryMonitoring(" LIMIT $limit OFFSET $offset");
+        return $this->queryMonitoring('', " LIMIT $limit OFFSET $offset");
     }
 
-    private function queryMonitoring($limitSql = '') {
+    public function paginatedFiltered($filters, $limit, $offset) {
+        $limit = max(1, intval($limit));
+        $offset = max(0, intval($offset));
+        return $this->queryMonitoring($this->filterWhereSql($filters), " LIMIT $limit OFFSET $offset");
+    }
+
+    public function filterOptions() {
+        return [
+            'statuses' => $this->statuses,
+            'campuses' => $this->distinctValues('evsu_campus'),
+            'schools' => $this->distinctValues('campus_school')
+        ];
+    }
+
+    private function queryMonitoring($whereSql = '', $limitSql = '') {
         $sql = "SELECT
                     me.*,
                     pg.program_title,
@@ -60,12 +86,93 @@ class Monitoring {
                 FROM monitoring_entries me
                 LEFT JOIN projects pr ON pr.id = me.project_id
                 LEFT JOIN programs pg ON pg.id = pr.program_id
+                ".$whereSql."
                 ORDER BY me.monitoring_date DESC, me.id DESC".$limitSql;
 
         $result = $this->conn->query($sql);
         $data = [];
         if($result) while($row = $result->fetch_assoc()) $data[] = $row;
         return $data;
+    }
+
+    private function filterWhereSql($filters) {
+        $filters = is_array($filters) ? $filters : [];
+        $where = [];
+
+        $q = trim((string)($filters['q'] ?? ''));
+        if($q !== '') {
+            $term = $this->esc($q);
+            $like = "'%$term%'";
+            $where[] = "(CAST(me.id AS CHAR) LIKE $like
+                OR CAST(me.project_id AS CHAR) LIKE $like
+                OR me.activity_title LIKE $like
+                OR me.source_of_fund LIKE $like
+                OR me.activity_description LIKE $like
+                OR me.remarks LIKE $like
+                OR me.evsu_campus LIKE $like
+                OR me.campus_school LIKE $like
+                OR COALESCE(NULLIF(me.barangay,''), pr.barangay, '') LIKE $like
+                OR COALESCE(NULLIF(me.municipality,''), pr.municipality, '') LIKE $like
+                OR COALESCE(NULLIF(me.province,''), pr.province, '') LIKE $like
+                OR pg.program_title LIKE $like
+                OR pr.project_title LIKE $like
+                OR pr.sdg LIKE $like
+                OR pr.partners LIKE $like
+                OR pr.type_of_clientele LIKE $like
+                OR pr.leader LIKE $like
+                OR pr.assistant_leader LIKE $like
+                OR pr.members LIKE $like
+                OR pr.special_order_no LIKE $like)";
+        }
+
+        $status = trim((string)($filters['status'] ?? ''));
+        if($status !== '' && in_array($status, $this->statuses, true)) {
+            $status = $this->esc($status);
+            $where[] = "COALESCE(NULLIF(me.status,''), pr.status, 'On-going') = '$status'";
+        }
+
+        $campus = trim((string)($filters['campus'] ?? ''));
+        if($campus !== '') {
+            $campus = $this->esc($campus);
+            $where[] = "me.evsu_campus = '$campus'";
+        }
+
+        $school = trim((string)($filters['school'] ?? ''));
+        if($school !== '') {
+            $school = $this->esc($school);
+            $where[] = "me.campus_school = '$school'";
+        }
+
+        $dateFrom = trim((string)($filters['date_from'] ?? ''));
+        if(preg_match('/^\d{4}-\d{2}-\d{2}$/', $dateFrom)) {
+            $dateFrom = $this->esc($dateFrom);
+            $where[] = "me.monitoring_date >= '$dateFrom'";
+        }
+
+        $dateTo = trim((string)($filters['date_to'] ?? ''));
+        if(preg_match('/^\d{4}-\d{2}-\d{2}$/', $dateTo)) {
+            $dateTo = $this->esc($dateTo);
+            $where[] = "me.monitoring_date <= '$dateTo'";
+        }
+
+        return empty($where) ? '' : ' WHERE '.implode(' AND ', $where);
+    }
+
+    private function distinctValues($column) {
+        $allowed = ['evsu_campus', 'campus_school'];
+        if(!in_array($column, $allowed, true)) return [];
+
+        $result = $this->conn->query("SELECT DISTINCT $column AS value
+            FROM monitoring_entries
+            WHERE $column IS NOT NULL AND TRIM($column) <> ''
+            ORDER BY $column ASC");
+
+        $values = [];
+        if($result) {
+            while($row = $result->fetch_assoc()) $values[] = $row['value'];
+        }
+
+        return $values;
     }
 
     public function create($data) {

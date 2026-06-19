@@ -51,14 +51,16 @@ class MonitoringController {
                     logActivity($this->db, "Create Monitoring Entry", "Monitoring", "Added monitoring entry.");
                 }
 
-                header("Location: index.php?page=monitoring&".($ok ? 'saved' : 'error')."=1");
+                header("Location: ".$this->withStatusFlag($redirect, $ok ? 'saved' : 'error'));
                 exit();
             }
         }
 
+        $monitoringFilters = $this->monitoringFilters();
+        $filterOptions = $this->model->filterOptions();
         $projects = $this->projectModel->all();
-        $pagination = paginationParams($this->model->countAll(), 10);
-        $monitoring = $this->model->paginated($pagination['per_page'], $pagination['offset']);
+        $pagination = paginationParams($this->model->countFiltered($monitoringFilters), 10);
+        $monitoring = $this->model->paginatedFiltered($monitoringFilters, $pagination['per_page'], $pagination['offset']);
 
         include "app/views/monitoring/index.php";
     }
@@ -77,10 +79,7 @@ class MonitoringController {
             }
         }
 
-        $redirect = $_POST['redirect'] ?? 'index.php?page=monitoring';
-        if(!preg_match('/^index\.php\?page=monitoring(&|$)/', $redirect)) {
-            $redirect = 'index.php?page=monitoring';
-        }
+        $redirect = $this->safeMonitoringRedirect($_POST['redirect'] ?? 'index.php?page=monitoring');
 
         header("Location: ".$redirect);
         exit();
@@ -88,16 +87,33 @@ class MonitoringController {
 
     private function safeMonitoringRedirect($redirect) {
         $redirect = trim((string)$redirect);
-        if(!preg_match('/^index\.php\?page=monitoring(&|$)/', $redirect)) {
+        $parts = parse_url($redirect);
+        if($redirect === '' || $parts === false || ($parts['path'] ?? '') !== 'index.php') {
             return 'index.php?page=monitoring';
         }
 
-        return $redirect;
+        parse_str($parts['query'] ?? '', $params);
+        if(($params['page'] ?? '') !== 'monitoring') {
+            return 'index.php?page=monitoring';
+        }
+
+        return 'index.php?'.http_build_query($params);
     }
 
     private function withStatusFlag($redirect, $flag) {
         $join = strpos($redirect, '?') === false ? '?' : '&';
         return $redirect.$join.$flag.'=1';
+    }
+
+    private function monitoringFilters() {
+        $keys = ['q', 'status', 'campus', 'school', 'date_from', 'date_to'];
+        $filters = [];
+
+        foreach($keys as $key) {
+            $filters[$key] = trim((string)($_GET[$key] ?? ''));
+        }
+
+        return $filters;
     }
 }
 ?>

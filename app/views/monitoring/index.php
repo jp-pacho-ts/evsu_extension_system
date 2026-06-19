@@ -1,5 +1,16 @@
 <?php include "app/views/layouts/header.php"; ?>
-<?php $monitoringRedirect = 'index.php?' . http_build_query($_GET); ?>
+<?php
+$monitoringRedirectParams = $_GET;
+foreach(['saved', 'updated', 'deleted', 'error'] as $flashParam) unset($monitoringRedirectParams[$flashParam]);
+if(empty($monitoringRedirectParams['page'])) $monitoringRedirectParams['page'] = 'monitoring';
+$monitoringRedirect = 'index.php?' . http_build_query($monitoringRedirectParams);
+$monitoringFilters = $monitoringFilters ?? ['q' => '', 'status' => '', 'campus' => '', 'school' => '', 'date_from' => '', 'date_to' => ''];
+$filterOptions = $filterOptions ?? ['statuses' => ['On-going','Completed','Inactive','Expired','Terminated'], 'campuses' => [], 'schools' => []];
+$statusOptions = $filterOptions['statuses'] ?? ['On-going','Completed','Inactive','Expired','Terminated'];
+$hasMonitoringFilters = count(array_filter($monitoringFilters, function($value) {
+    return trim((string)$value) !== '';
+})) > 0;
+?>
 
 <div class="d-flex flex-wrap justify-content-between align-items-start gap-3 mb-3">
     <p class="text-muted mb-0">Add monitoring entries and update project status.</p>
@@ -23,6 +34,73 @@
     <div class="d-flex justify-content-between align-items-center mb-3">
         <h5 class="fw-bold mb-0">Monitoring Records</h5>
         <button onclick="window.print()" class="btn btn-outline-primary no-print">Print / Save as PDF</button>
+    </div>
+
+    <div class="monitoring-filter-bar no-print mb-3">
+        <form method="GET" class="row g-2 align-items-end">
+            <input type="hidden" name="page" value="monitoring">
+
+            <div class="col-12 col-lg-4">
+                <label class="form-label" for="monitoringSearch">Search</label>
+                <div class="input-group input-group-sm">
+                    <span class="input-group-text"><i class="bi bi-search" aria-hidden="true"></i></span>
+                    <input type="search" class="form-control" id="monitoringSearch" name="q" value="<?= htmlspecialchars($monitoringFilters['q'] ?? '') ?>" placeholder="Project, program, location, update">
+                </div>
+            </div>
+
+            <div class="col-6 col-md-3 col-lg-2">
+                <label class="form-label" for="monitoringStatusFilter">Status</label>
+                <select class="form-select form-select-sm" id="monitoringStatusFilter" name="status">
+                    <option value="">All Statuses</option>
+                    <?php foreach($statusOptions as $status): ?>
+                        <option value="<?= htmlspecialchars($status) ?>" <?= ($monitoringFilters['status'] ?? '') === $status ? 'selected' : '' ?>><?= htmlspecialchars($status) ?></option>
+                    <?php endforeach; ?>
+                </select>
+            </div>
+
+            <div class="col-6 col-md-3 col-lg-2">
+                <label class="form-label" for="monitoringCampusFilter">Campus</label>
+                <select class="form-select form-select-sm" id="monitoringCampusFilter" name="campus">
+                    <option value="">All Campuses</option>
+                    <?php foreach(($filterOptions['campuses'] ?? []) as $campus): ?>
+                        <option value="<?= htmlspecialchars($campus) ?>" <?= ($monitoringFilters['campus'] ?? '') === $campus ? 'selected' : '' ?>><?= htmlspecialchars($campus) ?></option>
+                    <?php endforeach; ?>
+                </select>
+            </div>
+
+            <div class="col-6 col-md-3 col-lg-2">
+                <label class="form-label" for="monitoringSchoolFilter">School</label>
+                <select class="form-select form-select-sm" id="monitoringSchoolFilter" name="school">
+                    <option value="">All Schools</option>
+                    <?php foreach(($filterOptions['schools'] ?? []) as $school): ?>
+                        <option value="<?= htmlspecialchars($school) ?>" <?= ($monitoringFilters['school'] ?? '') === $school ? 'selected' : '' ?>><?= htmlspecialchars($school) ?></option>
+                    <?php endforeach; ?>
+                </select>
+            </div>
+
+            <div class="col-6 col-md-3 col-lg-2">
+                <label class="form-label" for="monitoringDateFrom">From</label>
+                <input type="date" class="form-control form-control-sm" id="monitoringDateFrom" name="date_from" value="<?= htmlspecialchars($monitoringFilters['date_from'] ?? '') ?>">
+            </div>
+
+            <div class="col-6 col-md-3 col-lg-2">
+                <label class="form-label" for="monitoringDateTo">To</label>
+                <input type="date" class="form-control form-control-sm" id="monitoringDateTo" name="date_to" value="<?= htmlspecialchars($monitoringFilters['date_to'] ?? '') ?>">
+            </div>
+
+            <div class="col-12 col-lg-auto">
+                <div class="monitoring-filter-actions">
+                    <button class="btn btn-sm btn-primary" type="submit">
+                        <i class="bi bi-funnel" aria-hidden="true"></i>
+                        Apply
+                    </button>
+                    <a class="btn btn-sm btn-outline-secondary" href="index.php?page=monitoring">
+                        <i class="bi bi-x-lg" aria-hidden="true"></i>
+                        Reset
+                    </a>
+                </div>
+            </div>
+        </form>
     </div>
 
     <div class="table-responsive monitoring-table-wrap">
@@ -114,7 +192,7 @@
                                 <input type="hidden" name="monitoring_id" value="<?= htmlspecialchars($m['id']) ?>">
                                 <input type="hidden" name="redirect" value="<?= htmlspecialchars($monitoringRedirect) ?>">
                                 <select name="status" onchange="this.form.submit()" class="form-select form-select-sm status-dropdown-inline">
-                                    <?php foreach(['On-going','Completed','Inactive','Expired','Terminated'] as $opt): ?>
+                                    <?php foreach($statusOptions as $opt): ?>
                                         <option value="<?= $opt ?>" <?= $currentStatus == $opt ? 'selected' : '' ?>><?= $opt ?></option>
                                     <?php endforeach; ?>
                                 </select>
@@ -131,12 +209,12 @@
                 <?php endforeach; ?>
 
                 <?php if(empty($monitoring ?? $records ?? [])): ?>
-                    <tr><td colspan="25" class="text-muted text-center">No monitoring records yet.</td></tr>
+                    <tr><td colspan="25" class="text-muted text-center"><?= $hasMonitoringFilters ? 'No monitoring records match the current search/filter.' : 'No monitoring records yet.' ?></td></tr>
                 <?php endif; ?>
             </tbody>
         </table>
     </div>
-    <?= renderPagination($pagination ?? [], 'monitoring records') ?>
+    <?= renderPagination($pagination ?? [], $hasMonitoringFilters ? 'matching monitoring records' : 'monitoring records') ?>
 </div>
 
 <div class="modal fade" id="addMonitoringModal" tabindex="-1" aria-labelledby="addMonitoringModalLabel" aria-hidden="true">
@@ -144,6 +222,7 @@
         <div class="modal-content">
             <form method="POST">
                 <input type="hidden" name="form_action" value="create">
+                <input type="hidden" name="redirect" value="<?= htmlspecialchars($monitoringRedirect) ?>">
                 <div class="modal-header">
                     <h5 class="modal-title" id="addMonitoringModalLabel">Add Monitoring Entry</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
@@ -212,6 +291,33 @@
 <?php endforeach; ?>
 
 <style>
+.monitoring-filter-bar {
+    padding: 12px;
+    background: #f8fafc;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+}
+
+.monitoring-filter-bar .form-label {
+    margin-bottom: 4px;
+    color: var(--text);
+    font-size: 11px;
+    font-weight: 700;
+}
+
+.monitoring-filter-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+.monitoring-filter-actions .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    min-height: 31px;
+}
+
 .monitoring-table-wrap {
     overflow-x: auto;
 }
