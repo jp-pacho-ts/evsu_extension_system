@@ -31,11 +31,12 @@ $defaultPreparedTitle = $profile['signatory_title'] ?? 'Extension Coordinator';
     <hr>
 
     <h5 class="fw-bold">Project Entries</h5>
+    <p class="text-muted small">Each completed approval stage adds 1 to the selected project's Monitoring Count (up to 4 per quarterly report).</p>
     <div class="table-responsive">
         <table class="table table-bordered align-middle">
             <thead class="table-light">
                 <tr>
-                    <th>Title of Extension Project</th>
+                    <th>Extension Project</th>
                     <th>Proponent/s</th>
                     <th>Date Conducted</th>
                     <th>Location</th>
@@ -47,7 +48,15 @@ $defaultPreparedTitle = $profile['signatory_title'] ?? 'Extension Coordinator';
             <tbody>
             <?php for($i=0; $i<4; $i++): ?>
                 <tr>
-                    <td><textarea name="title_of_extension_project[]" class="form-control" rows="3"><?= $i==0 ? 'SMART DEWS: A Mobile-Based Disaster Early Warning System for Storm Surge' : '' ?></textarea></td>
+                    <td>
+                        <select name="project_id[]" class="form-select" <?= $i === 0 ? 'required' : '' ?>>
+                            <option value="">Select project</option>
+                            <?php foreach(($projects ?? []) as $project): ?>
+                                <option value="<?= intval($project['id']) ?>"><?= htmlspecialchars($project['project_title']) ?></option>
+                            <?php endforeach; ?>
+                        </select>
+                        <input type="hidden" name="title_of_extension_project[]" value="">
+                    </td>
                     <td><textarea name="proponents[]" class="form-control" rows="3"><?= $i==0 ? 'Selected Faculty, Information Technology Department, EVSU\nProject Leader: Dr. Lyra K. Nuevas' : '' ?></textarea></td>
                     <td><input name="date_conducted[]" class="form-control" value="<?= $i==0 ? 'January 28, 2026' : '' ?>"></td>
                     <td><textarea name="location[]" class="form-control" rows="2"><?= $i==0 ? 'IGF Extension Fund and LGU-Abuyog' : '' ?></textarea></td>

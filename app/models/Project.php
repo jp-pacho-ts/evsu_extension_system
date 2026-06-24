@@ -9,6 +9,7 @@ class Project {
         $this->conn = $db;
         $this->sdgModel = new Sdg($db);
         $this->ensureMonitoringCampusColumns();
+        $this->ensureQuarterlyReportProjectColumn();
     }
 
     private function ensureMonitoringCampusColumns() {
@@ -23,6 +24,21 @@ class Project {
 
         @$this->conn->query($sql);
         $result = @$this->conn->query("SHOW COLUMNS FROM monitoring_entries LIKE '$column'");
+        return $result && $result->num_rows > 0;
+    }
+
+    private function ensureQuarterlyReportProjectColumn() {
+        $result = @$this->conn->query("SHOW COLUMNS FROM quarterly_report_items LIKE 'project_id'");
+        if($result && $result->num_rows > 0) return true;
+
+        @$this->conn->query("ALTER TABLE quarterly_report_items ADD COLUMN project_id int(11) DEFAULT NULL AFTER report_id");
+        @$this->conn->query("ALTER TABLE quarterly_report_items ADD KEY project_id (project_id)");
+        @$this->conn->query("UPDATE quarterly_report_items qri
+            JOIN projects p ON LOWER(TRIM(qri.title_of_extension_project)) = LOWER(TRIM(p.project_title))
+            SET qri.project_id = p.id
+            WHERE qri.project_id IS NULL");
+
+        $result = @$this->conn->query("SHOW COLUMNS FROM quarterly_report_items LIKE 'project_id'");
         return $result && $result->num_rows > 0;
     }
 
@@ -50,11 +66,23 @@ class Project {
     private function queryProjects($limitSql = '', $orderSql = " ORDER BY projects.created_at DESC, projects.id DESC") {
         $sdgLabelsSql = "(SELECT GROUP_CONCAT(CASE WHEN s.sdg_number IS NOT NULL THEN CONCAT('SDG ', s.sdg_number, ': ', s.title) ELSE s.title END ORDER BY COALESCE(s.sdg_number, 999), s.title SEPARATOR ', ') FROM project_sdgs ps JOIN sdgs s ON s.id = ps.sdg_id WHERE ps.project_id = projects.id)";
         $sdgIdsSql = "(SELECT GROUP_CONCAT(ps.sdg_id ORDER BY COALESCE(s.sdg_number, 999), s.title SEPARATOR ',') FROM project_sdgs ps JOIN sdgs s ON s.id = ps.sdg_id WHERE ps.project_id = projects.id)";
+        $savedMonitoringCountSql = "(SELECT COUNT(*) FROM monitoring_entries me_count WHERE me_count.project_id = projects.id)";
+        $approvalMonitoringCountSql = "(SELECT COUNT(*) FROM document_approvals da
+            WHERE da.document_type = 'quarterly_report'
+              AND da.status = 'Approved'
+              AND da.approval_level BETWEEN 1 AND 4
+              AND EXISTS (
+                  SELECT 1 FROM quarterly_report_items qri_count
+                  WHERE qri_count.report_id = da.document_id
+                    AND qri_count.project_id = projects.id
+              ))";
         $sql = "SELECT projects.*, programs.program_title,
                 $sdgLabelsSql AS sdg_display,
                 $sdgIdsSql AS sdg_ids,
-                (SELECT COUNT(*) FROM monitoring_entries WHERE monitoring_entries.project_id = projects.id) AS monitoring_count,
-                (((SELECT COUNT(*) FROM monitoring_entries WHERE monitoring_entries.project_id = projects.id) * 0.70) + ((projects.participants / 100) * 0.30)) AS esfi_score,
+                $savedMonitoringCountSql AS saved_monitoring_count,
+                $approvalMonitoringCountSql AS approval_monitoring_count,
+                ($savedMonitoringCountSql + $approvalMonitoringCountSql) AS monitoring_count,
+                ((($savedMonitoringCountSql + $approvalMonitoringCountSql) * 0.70) + ((projects.participants / 100) * 0.30)) AS esfi_score,
                 (SELECT me.activity_title FROM monitoring_entries me WHERE me.project_id = projects.id ORDER BY me.monitoring_date DESC, me.id DESC LIMIT 1) AS latest_monitoring_title,
                 (SELECT me.monitoring_date FROM monitoring_entries me WHERE me.project_id = projects.id ORDER BY me.monitoring_date DESC, me.id DESC LIMIT 1) AS latest_monitoring_date,
                 (SELECT me.status FROM monitoring_entries me WHERE me.project_id = projects.id ORDER BY me.monitoring_date DESC, me.id DESC LIMIT 1) AS latest_monitoring_status,
@@ -182,6 +210,9 @@ class Project {
 
         $linked = $this->conn->query("SELECT COUNT(*) AS total FROM monitoring_entries WHERE project_id=$id");
         if($linked && intval($linked->fetch_assoc()['total'] ?? 0) > 0) return false;
+
+        $linkedReports = $this->conn->query("SELECT COUNT(*) AS total FROM quarterly_report_items WHERE project_id=$id");
+        if($linkedReports && intval($linkedReports->fetch_assoc()['total'] ?? 0) > 0) return false;
 
         return $this->conn->query("DELETE FROM projects WHERE id=$id");
     }

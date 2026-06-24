@@ -978,7 +978,7 @@ function createMarker(p) {
         Suggested Program: ${escapeHtml(recommendation.need.program)}<br>
         Status: ${escapeHtml(recommendation.status)}<br>
         Latest Monitoring: ${escapeHtml(p.latest_monitoring_date || 'N/A')}<br>
-        Monitoring Activities: ${escapeHtml(p.monitoring_count || 0)}<br>
+        Monitoring Count: ${escapeHtml(p.monitoring_count || 0)}<br>
         Participants: ${escapeHtml(p.participants || 0)}<br>
         <b>ESFI: ${escapeHtml(esfi)}</b><br>
         <b>Priority Score: ${escapeHtml(recommendation.score)}</b><br>
@@ -1018,7 +1018,7 @@ function createMunicipalityMarker(area) {
         Province: ${escapeHtml(area.province || 'Eastern Visayas')}<br>
         Availability: ${municipalityIsNotTaken(area) ? 'Not taken / no project' : 'Has recorded project'}<br>
         Recorded Projects: ${escapeHtml(area.project_count)}<br>
-        Monitoring Activities: ${escapeHtml(area.monitoring_count)}<br>
+        Monitoring Count: ${escapeHtml(area.monitoring_count)}<br>
         Participants: ${escapeHtml(area.participants)}<br>
         Latest Monitoring: ${escapeHtml(area.latest_monitoring_date || 'N/A')}<br>
         Community Need: ${escapeHtml(recommendation.need.label)}<br>

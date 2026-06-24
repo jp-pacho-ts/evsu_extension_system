@@ -1,7 +1,12 @@
 <?php
 class QuarterlyReport {
     private $conn;
-    public function __construct($db){ $this->conn=$db; $this->ensureApprovalStatusEnums(); $this->ensureOwnershipColumn(); }
+    public function __construct($db){
+        $this->conn=$db;
+        $this->ensureApprovalStatusEnums();
+        $this->ensureOwnershipColumn();
+        $this->ensureProjectLinkColumn();
+    }
 
     private function ensureApprovalStatusEnums(){
         @$this->conn->query("ALTER TABLE quarterly_reports MODIFY submission_status enum('Draft','Submitted','Under Review','Recalled','For Revision','Not Approved','Department Coordinator Approved','School Coordinator Approved','Campus Director Approved','Extension Office Approved','VP ORIES Approved','Approved','Archived') DEFAULT 'Draft'");
@@ -14,6 +19,28 @@ class QuarterlyReport {
         @$this->conn->query("ALTER TABLE quarterly_reports ADD COLUMN created_by int(11) DEFAULT NULL AFTER approved_title");
         $rs = @$this->conn->query("SHOW COLUMNS FROM quarterly_reports LIKE 'created_by'");
         return $rs && $rs->num_rows > 0;
+    }
+
+    private function ensureProjectLinkColumn(){
+        $rs = @$this->conn->query("SHOW COLUMNS FROM quarterly_report_items LIKE 'project_id'");
+        if($rs && $rs->num_rows > 0) return true;
+
+        @$this->conn->query("ALTER TABLE quarterly_report_items ADD COLUMN project_id int(11) DEFAULT NULL AFTER report_id");
+        @$this->conn->query("ALTER TABLE quarterly_report_items ADD KEY project_id (project_id)");
+        @$this->conn->query("UPDATE quarterly_report_items qri
+            JOIN projects p ON LOWER(TRIM(qri.title_of_extension_project)) = LOWER(TRIM(p.project_title))
+            SET qri.project_id = p.id
+            WHERE qri.project_id IS NULL");
+
+        $rs = @$this->conn->query("SHOW COLUMNS FROM quarterly_report_items LIKE 'project_id'");
+        return $rs && $rs->num_rows > 0;
+    }
+
+    public function projectOptions(){
+        $r = $this->conn->query("SELECT id, project_title FROM projects ORDER BY project_title ASC");
+        $d = [];
+        if($r) while($x = $r->fetch_assoc()) $d[] = $x;
+        return $d;
     }
 
     public function all(){
@@ -94,9 +121,18 @@ class QuarterlyReport {
     private function saveItems($id,$items){
         $id=intval($id);
         foreach($items as $item){
-            if(trim($item['title_of_extension_project']??'')==='') continue;
+            $projectId = intval($item['project_id'] ?? 0);
+            if($projectId > 0) {
+                $project = $this->conn->query("SELECT project_title FROM projects WHERE id=$projectId LIMIT 1");
+                $project = $project ? $project->fetch_assoc() : null;
+                if(!$project) $projectId = 0;
+                else $item['title_of_extension_project'] = $project['project_title'];
+            }
+
+            if($projectId <= 0 && trim($item['title_of_extension_project']??'')==='') continue;
             foreach($item as $k=>$v) $item[$k]=$this->esc($v);
-            $this->conn->query("INSERT INTO quarterly_report_items(report_id,title_of_extension_project,proponents,date_conducted,location,source_of_fund,total_project_cost,project_phase) VALUES($id,'{$item['title_of_extension_project']}','{$item['proponents']}','{$item['date_conducted']}','{$item['location']}','{$item['source_of_fund']}','{$item['total_project_cost']}','{$item['project_phase']}')");
+            $projectIdSql = $projectId > 0 ? $projectId : 'NULL';
+            $this->conn->query("INSERT INTO quarterly_report_items(report_id,project_id,title_of_extension_project,proponents,date_conducted,location,source_of_fund,total_project_cost,project_phase) VALUES($id,$projectIdSql,'{$item['title_of_extension_project']}','{$item['proponents']}','{$item['date_conducted']}','{$item['location']}','{$item['source_of_fund']}','{$item['total_project_cost']}','{$item['project_phase']}')");
         }
     }
 

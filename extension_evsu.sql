@@ -733,6 +733,7 @@ CREATE TABLE `quarterly_reports` (
 CREATE TABLE `quarterly_report_items` (
   `id` int(11) NOT NULL,
   `report_id` int(11) NOT NULL,
+  `project_id` int(11) DEFAULT NULL,
   `title_of_extension_project` text DEFAULT NULL,
   `proponents` text DEFAULT NULL,
   `date_conducted` varchar(150) DEFAULT NULL,
@@ -853,7 +854,8 @@ ALTER TABLE `quarterly_reports`
 -- Indexes for table `quarterly_report_items`
 --
 ALTER TABLE `quarterly_report_items`
-  ADD PRIMARY KEY (`id`);
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `project_id` (`project_id`);
 
 --
 -- Indexes for table `sdgs`

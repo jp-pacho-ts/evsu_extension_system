@@ -12,9 +12,15 @@
 <div class="col-md-3"><label>Control No.</label><input name="control_no" class="form-control" value="<?= htmlspecialchars($report['control_no']) ?>"></div>
 <div class="col-md-3"><label>Revision No.</label><input name="revision_no" class="form-control" value="<?= htmlspecialchars($report['revision_no']) ?>"></div>
 <div class="col-md-3"><label>Date</label><input type="date" name="report_date" class="form-control" value="<?= htmlspecialchars($report['report_date']) ?>"></div></div><hr>
-<h5 class="fw-bold">Project Entries</h5><div class="table-responsive"><table class="table table-bordered"><thead><tr><th>Title</th><th>Proponents</th><th>Date</th><th>Location</th><th>Fund</th><th>Cost</th><th>Phase</th></tr></thead><tbody>
+<h5 class="fw-bold">Project Entries</h5><p class="text-muted small">Each completed approval stage adds 1 to the selected project's Monitoring Count (up to 4 per quarterly report).</p><div class="table-responsive"><table class="table table-bordered"><thead><tr><th>Project</th><th>Proponents</th><th>Date</th><th>Location</th><th>Fund</th><th>Cost</th><th>Phase</th></tr></thead><tbody>
 <?php for($i=0;$i<4;$i++): $item=$items[$i]??null; ?><tr>
-<td><textarea name="title_of_extension_project[]" class="form-control" rows="3"><?= htmlspecialchars($item['title_of_extension_project']??'') ?></textarea></td>
+<td>
+<select name="project_id[]" class="form-select" <?= $i === 0 ? 'required' : '' ?>>
+<option value=""><?= $item && empty($item['project_id']) ? 'Unlinked: '.htmlspecialchars($item['title_of_extension_project'] ?? '') : 'Select project' ?></option>
+<?php foreach(($projects ?? []) as $project): ?><option value="<?= intval($project['id']) ?>" <?= intval($item['project_id'] ?? 0) === intval($project['id']) ? 'selected' : '' ?>><?= htmlspecialchars($project['project_title']) ?></option><?php endforeach; ?>
+</select>
+<input type="hidden" name="title_of_extension_project[]" value="<?= htmlspecialchars($item['title_of_extension_project'] ?? '') ?>">
+</td>
 <td><textarea name="proponents[]" class="form-control" rows="3"><?= htmlspecialchars($item['proponents']??'') ?></textarea></td>
 <td><input name="date_conducted[]" class="form-control" value="<?= htmlspecialchars($item['date_conducted']??'') ?>"></td>
 <td><textarea name="location[]" class="form-control"><?= htmlspecialchars($item['location']??'') ?></textarea></td>

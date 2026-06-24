@@ -68,17 +68,21 @@ class QuarterlyReportController {
 
     private function collectItems() {
         $items = [];
-        $count = count($_POST['title_of_extension_project'] ?? []);
+        $count = max(
+            count($_POST['title_of_extension_project'] ?? []),
+            count($_POST['project_id'] ?? [])
+        );
 
         for($i = 0; $i < $count; $i++) {
             $items[] = [
-                'title_of_extension_project' => $_POST['title_of_extension_project'][$i],
-                'proponents' => $_POST['proponents'][$i],
-                'date_conducted' => $_POST['date_conducted'][$i],
-                'location' => $_POST['location'][$i],
-                'source_of_fund' => $_POST['source_of_fund'][$i],
-                'total_project_cost' => $_POST['total_project_cost'][$i],
-                'project_phase' => $_POST['project_phase'][$i]
+                'project_id' => $_POST['project_id'][$i] ?? 0,
+                'title_of_extension_project' => $_POST['title_of_extension_project'][$i] ?? '',
+                'proponents' => $_POST['proponents'][$i] ?? '',
+                'date_conducted' => $_POST['date_conducted'][$i] ?? '',
+                'location' => $_POST['location'][$i] ?? '',
+                'source_of_fund' => $_POST['source_of_fund'][$i] ?? '',
+                'total_project_cost' => $_POST['total_project_cost'][$i] ?? 0,
+                'project_phase' => $_POST['project_phase'][$i] ?? 1
             ];
         }
 
@@ -108,6 +112,7 @@ class QuarterlyReportController {
         }
 
         $currentUserProfile = $this->currentUserProfile();
+        $projects = $this->model->projectOptions();
         $pagination = paginationParams($this->model->countAll(), 10);
         $reports = $this->model->paginated($pagination['per_page'], $pagination['offset']);
         $reportPermissions = [];
@@ -123,6 +128,7 @@ class QuarterlyReportController {
         $id = intval($_GET['id'] ?? 0);
         $report = $this->model->find($id);
         $items = $this->model->items($id);
+        $projects = $this->model->projectOptions();
 
         if(!$report || !$this->canManageReports($report) || !$this->model->canEdit($report)) $this->denyAccess();
 

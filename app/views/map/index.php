@@ -136,7 +136,7 @@ include "app/views/layouts/header.php";
 
         <div class="card p-3 map-formula-card" id="esfiFormulaCard">
             <h5 class="fw-bold">ESFI Formula</h5>
-            <p class="small mb-2">(Monitoring Activities x 0.70) + (Participants / 100 x 0.30)</p>
+            <p class="small mb-2">(Monitoring Count x 0.70) + (Participants / 100 x 0.30). Monitoring Count includes saved entries and approved quarterly-report stages.</p>
             <div id="esfiFormulaResult" class="map-formula-result" aria-live="polite">
                 <p class="small text-muted mb-0">Hover a project in the ESFI Ranking to view its computed ESFI result.</p>
             </div>
@@ -170,7 +170,7 @@ include "app/views/layouts/header.php";
                     <td><?= htmlspecialchars($p['municipality'] ?? '') ?></td>
                     <td><?= htmlspecialchars($p['latest_monitoring_status'] ?? $p['status'] ?? '') ?></td>
                     <td><?= htmlspecialchars($p['latest_monitoring_date'] ?? '') ?></td>
-                    <td><?= intval($p['monitoring_count'] ?? 0) ?></td>
+                    <td title="<?= intval($p['saved_monitoring_count'] ?? 0) ?> saved entries + <?= intval($p['approval_monitoring_count'] ?? 0) ?> approved stages"><?= intval($p['monitoring_count'] ?? 0) ?></td>
                     <td><?= intval($p['participants'] ?? 0) ?></td>
                     <td><strong><?= htmlspecialchars($p['esfi'] ?? computeESFI($p['monitoring_count'] ?? 0, $p['participants'] ?? 0)) ?></strong></td>
                     <td><?= htmlspecialchars($p['esfi_label'] ?? esfiInterpretation(computeESFI($p['monitoring_count'] ?? 0, $p['participants'] ?? 0))) ?></td>
