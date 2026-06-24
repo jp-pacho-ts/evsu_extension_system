@@ -16,8 +16,18 @@
     <?php
         $status = $report['submission_status'] ?? 'Draft';
         $badge = ($status == 'Approved' || strpos($status, 'Approved') !== false) ? 'success' : (($status == 'For Revision' || $status == 'Not Approved') ? 'danger' : ($status == 'Submitted' ? 'primary' : ($status == 'Under Review' ? 'warning' : 'secondary')));
+        $approvedLevels = [];
+        foreach(($approvals ?? []) as $approval) {
+            $level = intval($approval['approval_level'] ?? 0);
+            if($level >= 1 && $level <= 4 && ($approval['status'] ?? '') === 'Approved') {
+                $approvedLevels[$level] = true;
+            }
+        }
+        $approvalMonitoringContribution = count($approvedLevels);
     ?>
     <p class="mb-1"><b>Status:</b> <span class="badge bg-<?= $badge ?>"><?= htmlspecialchars($status) ?></span></p>
+    <p class="mb-1"><b>Monitoring Count Contribution:</b> +<?= $approvalMonitoringContribution ?> of 4 approved stages</p>
+    <p class="text-muted small mb-2">Submitting the report does not increase the count. Each completed approval stage adds 1 to every project selected in this report.</p>
     <p class="mb-1"><b>Submitted By:</b> <?= htmlspecialchars($report['submitted_by_name'] ?? '') ?></p>
     <p class="mb-1"><b>Submitted At:</b> <?= htmlspecialchars($report['submitted_at'] ?? '') ?></p>
     <p class="mb-1"><b>Reviewed By:</b> <?= htmlspecialchars($report['reviewed_by_name'] ?? '') ?></p>

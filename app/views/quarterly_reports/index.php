@@ -31,7 +31,7 @@ $defaultPreparedTitle = $profile['signatory_title'] ?? 'Extension Coordinator';
     <hr>
 
     <h5 class="fw-bold">Project Entries</h5>
-    <p class="text-muted small">Each completed approval stage adds 1 to the selected project's Monitoring Count (up to 4 per quarterly report).</p>
+    <p class="text-muted small">Submitting contributes 0. Each completed approval stage adds 1 to the selected project's Monitoring Count (up to 4 per quarterly report).</p>
     <div class="table-responsive">
         <table class="table table-bordered align-middle">
             <thead class="table-light">
