@@ -18,6 +18,7 @@ function canAccessPrograms(){ return hasRole(['Super Admin','Admin']); }
 function canAccessProjects(){ return hasRole(['Super Admin','Admin']); }
 function canAccessMonitoringRecords(){ return hasRole(['Super Admin','Admin']); }
 function canAccessQuarterlyReports(){ return hasRole(['Department Coordinator','Extension Staff','School Coordinator','Campus Director','Dean','Extension Director','VP ORIES','Super Admin','Admin','Faculty']); }
+function canAccessExtensionForms(){ return canAccessQuarterlyReports(); }
 function canAccessGisMap(){ return hasRole(['Super Admin','Admin','Campus Director','Dean','Extension Director']); }
 function roleLandingPage(){ $r=currentRole(); if(canAccessApprovalCenter()) return 'index.php?page=approval_center'; if($r=='faculty') return 'index.php?page=quarterly_reports'; return 'index.php?page=dashboard'; }
 function roleDatabaseAliases($role){
@@ -165,8 +166,13 @@ function pendingApprovalCount($db) {
 
     if($expected == '') return 0;
     $expected = $db->real_escape_string($expected);
-    $rs = @$db->query("SELECT COUNT(*) AS total FROM quarterly_reports WHERE submission_status='$expected'");
-    if($rs) return intval($rs->fetch_assoc()['total']);
-    return 0;
+    $total = 0;
+    foreach(['quarterly_reports','quarterly_accomplishment_reports','field_visit_logs'] as $table) {
+        $exists = @$db->query("SHOW TABLES LIKE '$table'");
+        if(!$exists || $exists->num_rows === 0) continue;
+        $rs = @$db->query("SELECT COUNT(*) AS total FROM $table WHERE submission_status='$expected'");
+        if($rs) $total += intval($rs->fetch_assoc()['total'] ?? 0);
+    }
+    return $total;
 }
 ?>

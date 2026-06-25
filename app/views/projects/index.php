@@ -40,7 +40,7 @@
                     <td><?= htmlspecialchars($p['sdg'] ?? '') ?></td>
                     <td><?= htmlspecialchars($p['type_of_clientele'] ?? '') ?></td>
                     <td><span class="badge bg-<?= statusBadge($p['status'] ?? '') ?>"><?= htmlspecialchars($p['status'] ?? '') ?></span></td>
-                    <td><?= intval($p['monitoring_count'] ?? 0) ?></td>
+                    <td title="<?= intval($p['saved_monitoring_count'] ?? 0) ?> monitoring entries + <?= intval($p['quarterly_monitoring_count'] ?? 0) ?> quarterly monitoring reports + <?= intval($p['quarterly_accomplishment_count'] ?? 0) ?> accomplishment reports + <?= intval($p['field_visit_count'] ?? 0) ?> field visit logs"><?= intval($p['monitoring_count'] ?? 0) ?></td>
                     <td><?= intval($p['participants'] ?? 0) ?></td>
                     <td><strong><?= htmlspecialchars($p['esfi'] ?? computeESFI($p['monitoring_count'] ?? 0, $p['participants'] ?? 0)) ?></strong></td>
                     <td><?= htmlspecialchars($p['esfi_label'] ?? esfiInterpretation(computeESFI($p['monitoring_count'] ?? 0, $p['participants'] ?? 0))) ?></td>
@@ -117,7 +117,7 @@
                     <div class="modal-body">
                         <p class="mb-1">Delete this project?</p>
                         <p class="fw-bold mb-0"><?= htmlspecialchars($p['project_title'] ?? '') ?></p>
-                        <p class="text-muted small mt-2 mb-0">Projects with related monitoring records cannot be deleted.</p>
+                        <p class="text-muted small mt-2 mb-0">Projects with related monitoring, accomplishment, or field visit records cannot be deleted.</p>
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>

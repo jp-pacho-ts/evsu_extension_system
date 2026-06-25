@@ -4,6 +4,7 @@ require_once __DIR__ . "/Sdg.php";
 class Project {
     private $conn;
     private $sdgModel;
+    private $tableExistsCache = [];
 
     public function __construct($db) {
         $this->conn = $db;
@@ -42,6 +43,15 @@ class Project {
         return $result && $result->num_rows > 0;
     }
 
+    private function tableExists($table) {
+        $table = $this->conn->real_escape_string($table);
+        if(array_key_exists($table, $this->tableExistsCache)) return $this->tableExistsCache[$table];
+
+        $result = @$this->conn->query("SHOW TABLES LIKE '$table'");
+        $this->tableExistsCache[$table] = $result && $result->num_rows > 0;
+        return $this->tableExistsCache[$table];
+    }
+
     public function all() {
         return $this->queryProjects();
     }
@@ -67,22 +77,25 @@ class Project {
         $sdgLabelsSql = "(SELECT GROUP_CONCAT(CASE WHEN s.sdg_number IS NOT NULL THEN CONCAT('SDG ', s.sdg_number, ': ', s.title) ELSE s.title END ORDER BY COALESCE(s.sdg_number, 999), s.title SEPARATOR ', ') FROM project_sdgs ps JOIN sdgs s ON s.id = ps.sdg_id WHERE ps.project_id = projects.id)";
         $sdgIdsSql = "(SELECT GROUP_CONCAT(ps.sdg_id ORDER BY COALESCE(s.sdg_number, 999), s.title SEPARATOR ',') FROM project_sdgs ps JOIN sdgs s ON s.id = ps.sdg_id WHERE ps.project_id = projects.id)";
         $savedMonitoringCountSql = "(SELECT COUNT(*) FROM monitoring_entries me_count WHERE me_count.project_id = projects.id)";
-        $approvalMonitoringCountSql = "(SELECT COUNT(*) FROM document_approvals da
-            WHERE da.document_type = 'quarterly_report'
-              AND da.status = 'Approved'
-              AND da.approval_level BETWEEN 1 AND 4
-              AND EXISTS (
-                  SELECT 1 FROM quarterly_report_items qri_count
-                  WHERE qri_count.report_id = da.document_id
-                    AND qri_count.project_id = projects.id
-              ))";
+        $quarterlyMonitoringCountSql = $this->tableExists('quarterly_report_items')
+            ? "(SELECT COUNT(DISTINCT qri_count.report_id) FROM quarterly_report_items qri_count WHERE qri_count.project_id = projects.id)"
+            : "0";
+        $quarterlyAccomplishmentCountSql = $this->tableExists('quarterly_accomplishment_items')
+            ? "(SELECT COUNT(DISTINCT qai_count.report_id) FROM quarterly_accomplishment_items qai_count WHERE qai_count.project_id = projects.id)"
+            : "0";
+        $fieldVisitCountSql = $this->tableExists('field_visit_logs')
+            ? "(SELECT COUNT(*) FROM field_visit_logs fvl_count WHERE fvl_count.project_id = projects.id)"
+            : "0";
+        $monitoringCountSql = "($savedMonitoringCountSql + $quarterlyMonitoringCountSql + $quarterlyAccomplishmentCountSql + $fieldVisitCountSql)";
         $sql = "SELECT projects.*, programs.program_title,
                 $sdgLabelsSql AS sdg_display,
                 $sdgIdsSql AS sdg_ids,
                 $savedMonitoringCountSql AS saved_monitoring_count,
-                $approvalMonitoringCountSql AS approval_monitoring_count,
-                ($savedMonitoringCountSql + $approvalMonitoringCountSql) AS monitoring_count,
-                ((($savedMonitoringCountSql + $approvalMonitoringCountSql) * 0.70) + ((projects.participants / 100) * 0.30)) AS esfi_score,
+                $quarterlyMonitoringCountSql AS quarterly_monitoring_count,
+                $quarterlyAccomplishmentCountSql AS quarterly_accomplishment_count,
+                $fieldVisitCountSql AS field_visit_count,
+                $monitoringCountSql AS monitoring_count,
+                (($monitoringCountSql * 0.70) + ((projects.participants / 100) * 0.30)) AS esfi_score,
                 (SELECT me.activity_title FROM monitoring_entries me WHERE me.project_id = projects.id ORDER BY me.monitoring_date DESC, me.id DESC LIMIT 1) AS latest_monitoring_title,
                 (SELECT me.monitoring_date FROM monitoring_entries me WHERE me.project_id = projects.id ORDER BY me.monitoring_date DESC, me.id DESC LIMIT 1) AS latest_monitoring_date,
                 (SELECT me.status FROM monitoring_entries me WHERE me.project_id = projects.id ORDER BY me.monitoring_date DESC, me.id DESC LIMIT 1) AS latest_monitoring_status,
@@ -213,6 +226,16 @@ class Project {
 
         $linkedReports = $this->conn->query("SELECT COUNT(*) AS total FROM quarterly_report_items WHERE project_id=$id");
         if($linkedReports && intval($linkedReports->fetch_assoc()['total'] ?? 0) > 0) return false;
+
+        if($this->tableExists('quarterly_accomplishment_items')) {
+            $linkedAccomplishments = $this->conn->query("SELECT COUNT(*) AS total FROM quarterly_accomplishment_items WHERE project_id=$id");
+            if($linkedAccomplishments && intval($linkedAccomplishments->fetch_assoc()['total'] ?? 0) > 0) return false;
+        }
+
+        if($this->tableExists('field_visit_logs')) {
+            $linkedFieldVisits = $this->conn->query("SELECT COUNT(*) AS total FROM field_visit_logs WHERE project_id=$id");
+            if($linkedFieldVisits && intval($linkedFieldVisits->fetch_assoc()['total'] ?? 0) > 0) return false;
+        }
 
         return $this->conn->query("DELETE FROM projects WHERE id=$id");
     }

@@ -56,6 +56,7 @@ const baselineNeedProfile = {
     program: 'Community Needs Assessment and Project Profiling',
     source: 'baseline'
 };
+const notTakenMunicipalityColor = '#16a34a';
 
 const map = L.map('map', {
     maxBounds: mapBounds,
@@ -709,7 +710,7 @@ function priorityColor(recommendation) {
 function priorityPinIcon(recommendation) {
     return L.divIcon({
         className: 'priority-pin-icon',
-        html: `<span class="priority-pin-shape" style="--pin-color:${priorityColor(recommendation)}"></span>`,
+        html: `<span class="priority-pin-shape" style="--pin-color:${notTakenMunicipalityColor}"></span>`,
         iconSize: [30, 38],
         iconAnchor: [15, 34],
         popupAnchor: [0, -32],
@@ -1114,7 +1115,7 @@ function renderRecommendations(items, municipalityItems = []) {
         const attrs = `data-municipality-id="${escapeHtml(item.area.id)}"`;
 
         return `
-        <button type="button" class="map-recommendation-item" ${attrs} style="--priority-color:${priorityColor(recommendation)}">
+        <button type="button" class="map-recommendation-item" ${attrs} style="--priority-color:${notTakenMunicipalityColor}">
             <span class="map-recommendation-score">${escapeHtml(recommendation.score)}%</span>
             <span class="map-recommendation-body">
                 <small>Not Taken Municipality</small>

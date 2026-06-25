@@ -129,14 +129,14 @@ include "app/views/layouts/header.php";
         <div class="card p-3 map-recommendation-card priority-recommender-card">
             <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
                 <h5 class="fw-bold mb-0">Not-Taken Municipality Recommender</h5>
-                <span id="recommendationCount" class="badge bg-danger">0</span>
+                <span id="recommendationCount" class="badge bg-success">0</span>
             </div>
             <div id="recommendationList" class="map-recommendation-list priority-recommendation-list"></div>
         </div>
 
         <div class="card p-3 map-formula-card" id="esfiFormulaCard">
             <h5 class="fw-bold">ESFI Formula</h5>
-            <p class="small mb-2">(Monitoring Count x 0.70) + (Participants / 100 x 0.30). Monitoring Count includes saved entries and approved quarterly-report stages.</p>
+            <p class="small mb-2">(Monitoring Count x 0.70) + (Participants / 100 x 0.30). Monitoring Count includes saved monitoring entries, created quarterly monitoring reports, accomplishment reports, and field visit logs.</p>
             <div id="esfiFormulaResult" class="map-formula-result" aria-live="polite">
                 <p class="small text-muted mb-0">Hover a project in the ESFI Ranking to view its computed ESFI result.</p>
             </div>
@@ -170,7 +170,7 @@ include "app/views/layouts/header.php";
                     <td><?= htmlspecialchars($p['municipality'] ?? '') ?></td>
                     <td><?= htmlspecialchars($p['latest_monitoring_status'] ?? $p['status'] ?? '') ?></td>
                     <td><?= htmlspecialchars($p['latest_monitoring_date'] ?? '') ?></td>
-                    <td title="<?= intval($p['saved_monitoring_count'] ?? 0) ?> saved entries + <?= intval($p['approval_monitoring_count'] ?? 0) ?> approved stages"><?= intval($p['monitoring_count'] ?? 0) ?></td>
+                    <td title="<?= intval($p['saved_monitoring_count'] ?? 0) ?> monitoring entries + <?= intval($p['quarterly_monitoring_count'] ?? 0) ?> quarterly monitoring reports + <?= intval($p['quarterly_accomplishment_count'] ?? 0) ?> accomplishment reports + <?= intval($p['field_visit_count'] ?? 0) ?> field visit logs"><?= intval($p['monitoring_count'] ?? 0) ?></td>
                     <td><?= intval($p['participants'] ?? 0) ?></td>
                     <td><strong><?= htmlspecialchars($p['esfi'] ?? computeESFI($p['monitoring_count'] ?? 0, $p['participants'] ?? 0)) ?></strong></td>
                     <td><?= htmlspecialchars($p['esfi_label'] ?? esfiInterpretation(computeESFI($p['monitoring_count'] ?? 0, $p['participants'] ?? 0))) ?></td>

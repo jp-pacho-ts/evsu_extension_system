@@ -33,7 +33,7 @@ class ProjectController {
             } elseif($action === 'delete') {
                 $message = $this->model->delete($_POST['project_id'] ?? 0)
                     ? "Project deleted successfully."
-                    : "Unable to delete project. Remove related monitoring records first.";
+                    : "Unable to delete project. Remove related monitoring, accomplishment, or field visit records first.";
             } else {
                 $message = $this->model->create($_POST) ? "Project saved successfully." : "Unable to save project.";
             }

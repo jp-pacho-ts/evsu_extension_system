@@ -26,6 +26,14 @@ $pageTitles = [
     'quarterly_reports' => 'Quarterly Reports',
     'edit_quarterly_report' => 'Quarterly Report',
     'view_quarterly_report' => 'Quarterly Report',
+    'quarterly_accomplishments' => 'Quarterly Accomplishments',
+    'create_quarterly_accomplishment' => 'New Quarterly Accomplishment',
+    'edit_quarterly_accomplishment' => 'Edit Quarterly Accomplishment',
+    'view_quarterly_accomplishment' => 'Quarterly Accomplishment',
+    'field_visit_logs' => 'Field Visit Logs',
+    'create_field_visit_log' => 'New Field Visit Log',
+    'edit_field_visit_log' => 'Edit Field Visit Log',
+    'view_field_visit_log' => 'Field Visit Log',
     'report' => 'Descriptive Report',
     'map' => 'GIS Map',
     'users' => 'User Management',
@@ -107,7 +115,9 @@ if($initials === '') $initials = 'GE';
                     <a class="sidebar-link<?= $activeClass(['monitoring']) ?>" href="index.php?page=monitoring">Monitoring</a>
                 <?php endif; ?>
                 <?php if($canViewQuarterlyReports): ?>
-                    <a class="sidebar-link<?= $activeClass(['quarterly_reports','edit_quarterly_report','view_quarterly_report']) ?>" href="index.php?page=quarterly_reports">Quarterly Reports</a>
+                    <a class="sidebar-link<?= $activeClass(['field_visit_logs','create_field_visit_log','edit_field_visit_log','view_field_visit_log']) ?>" href="index.php?page=field_visit_logs">Field Visit Logs</a>
+                    <a class="sidebar-link<?= $activeClass(['quarterly_accomplishments','create_quarterly_accomplishment','edit_quarterly_accomplishment','view_quarterly_accomplishment']) ?>" href="index.php?page=quarterly_accomplishments">Quarterly Accomplishments</a>
+                    <a class="sidebar-link<?= $activeClass(['quarterly_reports','edit_quarterly_report','view_quarterly_report']) ?>" href="index.php?page=quarterly_reports">Quarterly Monitoring</a>
                 <?php endif; ?>
             <?php endif; ?>
 

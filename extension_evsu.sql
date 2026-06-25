@@ -952,6 +952,118 @@ ALTER TABLE `quarterly_report_items`
 --
 ALTER TABLE `users`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
+
+--
+-- Structured extension forms added for EVSU-ORDE&S-F-027 and EVSU-ORDE&S-F-076
+--
+CREATE TABLE IF NOT EXISTS `quarterly_accomplishment_reports` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `college` varchar(150) DEFAULT NULL,
+  `campus` varchar(150) DEFAULT NULL,
+  `department` varchar(150) DEFAULT NULL,
+  `quarter` tinyint(1) NOT NULL DEFAULT 1,
+  `report_year` smallint(6) NOT NULL,
+  `control_no` varchar(100) DEFAULT 'EVSU-ORDE&S-F-027',
+  `revision_no` varchar(50) DEFAULT '03',
+  `effectivity_date` date DEFAULT NULL,
+  `prepared_by` varchar(180) DEFAULT NULL,
+  `prepared_title` varchar(180) DEFAULT NULL,
+  `checked_by` varchar(180) DEFAULT NULL,
+  `checked_title` varchar(180) DEFAULT NULL,
+  `noted_by` varchar(180) DEFAULT NULL,
+  `noted_title` varchar(180) DEFAULT NULL,
+  `approved_by` varchar(180) DEFAULT NULL,
+  `approved_title` varchar(180) DEFAULT NULL,
+  `created_by` int(11) DEFAULT NULL,
+  `submission_status` varchar(80) NOT NULL DEFAULT 'Draft',
+  `submitted_by` int(11) DEFAULT NULL,
+  `submitted_at` datetime DEFAULT NULL,
+  `recalled_by` int(11) DEFAULT NULL,
+  `recalled_at` datetime DEFAULT NULL,
+  `updated_by` int(11) DEFAULT NULL,
+  `updated_at` datetime DEFAULT NULL,
+  `revision_notes` text DEFAULT NULL,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  PRIMARY KEY (`id`), KEY `created_by` (`created_by`), KEY `reporting_period` (`report_year`,`quarter`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+CREATE TABLE IF NOT EXISTS `quarterly_accomplishment_items` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `report_id` int(11) NOT NULL,
+  `program_id` int(11) DEFAULT NULL,
+  `project_id` int(11) DEFAULT NULL,
+  `inclusive_date_start` date DEFAULT NULL,
+  `inclusive_date_end` date DEFAULT NULL,
+  `activity_title` text DEFAULT NULL,
+  `beneficiary_type` text DEFAULT NULL,
+  `male_count` int(11) NOT NULL DEFAULT 0,
+  `female_count` int(11) NOT NULL DEFAULT 0,
+  `quality_rating` decimal(5,2) DEFAULT NULL,
+  `duration_hours` decimal(8,2) NOT NULL DEFAULT 0.00,
+  `service_type` varchar(180) DEFAULT NULL,
+  `partner_agency` text DEFAULT NULL,
+  `faculty_staff_involved` text DEFAULT NULL,
+  `students_involved` int(11) NOT NULL DEFAULT 0,
+  `nature_of_participation` text DEFAULT NULL,
+  `project_cost` decimal(12,2) NOT NULL DEFAULT 0.00,
+  `funding_source` varchar(180) DEFAULT NULL,
+  PRIMARY KEY (`id`), KEY `report_id` (`report_id`), KEY `project_id` (`project_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+CREATE TABLE IF NOT EXISTS `field_visit_logs` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `program_id` int(11) DEFAULT NULL,
+  `project_id` int(11) DEFAULT NULL,
+  `quarter` tinyint(1) NOT NULL DEFAULT 1,
+  `report_year` smallint(6) NOT NULL,
+  `duration_start` date DEFAULT NULL,
+  `duration_end` date DEFAULT NULL,
+  `implementing_unit` varchar(255) DEFAULT NULL,
+  `campus` varchar(150) DEFAULT NULL,
+  `control_no` varchar(100) DEFAULT 'EVSU-ORDE&S-F-076',
+  `revision_no` varchar(50) DEFAULT '00',
+  `form_date` date DEFAULT NULL,
+  `prepared_by` varchar(180) DEFAULT NULL,
+  `prepared_title` varchar(180) DEFAULT NULL,
+  `noted_by` varchar(180) DEFAULT NULL,
+  `noted_title` varchar(180) DEFAULT NULL,
+  `attested_by` varchar(180) DEFAULT NULL,
+  `attested_title` varchar(180) DEFAULT NULL,
+  `approved_by` varchar(180) DEFAULT NULL,
+  `approved_title` varchar(180) DEFAULT NULL,
+  `created_by` int(11) DEFAULT NULL,
+  `submission_status` varchar(80) NOT NULL DEFAULT 'Draft',
+  `submitted_by` int(11) DEFAULT NULL,
+  `submitted_at` datetime DEFAULT NULL,
+  `recalled_by` int(11) DEFAULT NULL,
+  `recalled_at` datetime DEFAULT NULL,
+  `updated_by` int(11) DEFAULT NULL,
+  `updated_at` datetime DEFAULT NULL,
+  `revision_notes` text DEFAULT NULL,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  PRIMARY KEY (`id`), KEY `project_id` (`project_id`), KEY `created_by` (`created_by`), KEY `reporting_period` (`report_year`,`quarter`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+CREATE TABLE IF NOT EXISTS `field_visit_items` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `log_id` int(11) NOT NULL,
+  `objectives` text DEFAULT NULL,
+  `activities` text DEFAULT NULL,
+  `visit_date` date DEFAULT NULL,
+  `place` varchar(255) DEFAULT NULL,
+  `time_start` time DEFAULT NULL,
+  `time_end` time DEFAULT NULL,
+  `expected_parameter` text DEFAULT NULL,
+  `expected_target` text DEFAULT NULL,
+  `person_contacted` varchar(180) DEFAULT NULL,
+  `contact_position` varchar(180) DEFAULT NULL,
+  `results` text DEFAULT NULL,
+  `observations` text DEFAULT NULL,
+  `issues` text DEFAULT NULL,
+  `action_points` text DEFAULT NULL,
+  `comments` text DEFAULT NULL,
+  PRIMARY KEY (`id`), KEY `log_id` (`log_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;

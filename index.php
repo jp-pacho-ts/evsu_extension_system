@@ -72,6 +72,62 @@ switch ($page) {
         require_once "app/controllers/QuarterlyReportController.php";
         (new QuarterlyReportController($db))->show();
         break;
+    case 'quarterly_accomplishments':
+        require_once "app/controllers/QuarterlyAccomplishmentController.php";
+        (new QuarterlyAccomplishmentController($db))->index();
+        break;
+    case 'create_quarterly_accomplishment':
+        require_once "app/controllers/QuarterlyAccomplishmentController.php";
+        (new QuarterlyAccomplishmentController($db))->create();
+        break;
+    case 'edit_quarterly_accomplishment':
+        require_once "app/controllers/QuarterlyAccomplishmentController.php";
+        (new QuarterlyAccomplishmentController($db))->edit();
+        break;
+    case 'view_quarterly_accomplishment':
+        require_once "app/controllers/QuarterlyAccomplishmentController.php";
+        (new QuarterlyAccomplishmentController($db))->show();
+        break;
+    case 'submit_quarterly_accomplishment':
+        require_once "app/controllers/QuarterlyAccomplishmentController.php";
+        (new QuarterlyAccomplishmentController($db))->submit();
+        break;
+    case 'recall_quarterly_accomplishment':
+        require_once "app/controllers/QuarterlyAccomplishmentController.php";
+        (new QuarterlyAccomplishmentController($db))->recall();
+        break;
+    case 'delete_quarterly_accomplishment':
+        require_once "app/controllers/QuarterlyAccomplishmentController.php";
+        (new QuarterlyAccomplishmentController($db))->delete();
+        break;
+    case 'field_visit_logs':
+        require_once "app/controllers/FieldVisitLogController.php";
+        (new FieldVisitLogController($db))->index();
+        break;
+    case 'create_field_visit_log':
+        require_once "app/controllers/FieldVisitLogController.php";
+        (new FieldVisitLogController($db))->create();
+        break;
+    case 'edit_field_visit_log':
+        require_once "app/controllers/FieldVisitLogController.php";
+        (new FieldVisitLogController($db))->edit();
+        break;
+    case 'view_field_visit_log':
+        require_once "app/controllers/FieldVisitLogController.php";
+        (new FieldVisitLogController($db))->show();
+        break;
+    case 'submit_field_visit_log':
+        require_once "app/controllers/FieldVisitLogController.php";
+        (new FieldVisitLogController($db))->submit();
+        break;
+    case 'recall_field_visit_log':
+        require_once "app/controllers/FieldVisitLogController.php";
+        (new FieldVisitLogController($db))->recall();
+        break;
+    case 'delete_field_visit_log':
+        require_once "app/controllers/FieldVisitLogController.php";
+        (new FieldVisitLogController($db))->delete();
+        break;
     case 'approval_action':
         require_once "app/controllers/ApprovalController.php";
         (new ApprovalController($db))->action();

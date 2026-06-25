@@ -902,10 +902,10 @@ tbody tr:hover .actions-column {
     display: block;
     width: 24px;
     height: 24px;
-    background: var(--pin-color, #dc2626);
+    background: var(--pin-color, #16a34a);
     border: 3px solid #ffffff;
     border-radius: 50% 50% 50% 0;
-    box-shadow: 0 5px 12px rgba(220, 38, 38, 0.28);
+    box-shadow: 0 5px 12px rgba(22, 163, 74, 0.28);
     transform: rotate(-45deg);
 }
 
@@ -1209,10 +1209,10 @@ tbody tr:hover .actions-column {
     height: 18px;
     margin-right: 8px;
     vertical-align: middle;
-    background: #dc2626;
+    background: #16a34a;
     border: 3px solid #ffffff;
     border-radius: 50% 50% 50% 0;
-    box-shadow: 0 0 0 1px #dc2626;
+    box-shadow: 0 0 0 1px #16a34a;
     transform: rotate(-45deg);
 }
 
